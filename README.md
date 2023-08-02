@@ -81,6 +81,12 @@ ndisasm ./boot.bin
 qemu-system-x86_64 -hda ./boot.bin
 ```
 
+> You can boot it from a USB stick
+> ```sh
+> sudo dd if=./boot.bin of=/dev/sdb
+> ```
+
+
 ## Real Mode
 
 - Only 1M RAM access. Memory access is done through the segmentation memory model.
@@ -168,6 +174,26 @@ mov byte al, [es:32]
 > Then set 0x7bfe and 0x7bff to value 0xffff.
 
 
+---
+
+
+## Interrputs
+
+lnterrupts are like subroutines, but you don't need to know the memory address to invoke them. lnterrupts are called through the use of interrupt numbers rather than memory addresses. 
+
+lnterrupts can be setup by the programmer. For example you could set up interrupt “0x32” and let it point to your code.
+
+### Interrputs Table
+
+The table has 256 interrupt handlers. Every entry contains 4 bytes (OFFSET:SEGMENT,  2 bytes: 2bytes).
+
+`SEGMENT * 16 + OFFSET` is the handler`s address. 
+
+The 0x13 interrupt will go to offset (0x13 * 4 = 0x46) from the beginning of Interrupt Vector Table.
+
+  
+
+---
 
 
 
