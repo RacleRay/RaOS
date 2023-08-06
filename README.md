@@ -192,8 +192,47 @@ The table has 256 interrupt handlers. Every entry contains 4 bytes (OFFSET:SEGME
 The 0x13 interrupt will go to offset (0x13 * 4 = 0x46) from the beginning of Interrupt Vector Table.
 
   
+---
+
+
+## Disk
+
+The disk itself has no concept of files. The disk itself just holds loads of data blocks called sectors. 
+
+Filesystems are kernel implemented they are not the responsibility of the hard disk. Implementing a filesystem requires the kernel programmer to create a filesystem driver for the target file system.
+
+Data is read and written in sectors typically 512 byte blocks for example. Reading the sector of a disk will return 512 bytes of data for the chosen sector.
+
+> CHS(CYLINDER HEAD SECTOR)
+>
+> > Sectors are read and written by specifying "head" "track"and "sector".
+> >
+> > This is old fashioned and not the modern way of reading from a disk drive.
+
+> LBA(LOGICAL BLOCK ADDRESS)
+>
+> > This is the modern way of reading from a hard disk, rather than specify "head" "track" and "sector" we just specify a number that starts from zero.
+> >
+> > LBA allows us to read from the disk as if we are reading blocks from a very large file.
+> >
+> > LBA 0 = first sector on the disk;  LBA 1 = second sector on the disk.
+
+Let`s say we want to read the byte at position 58376 on the disk how do we do it?
+
+LBA = 58376 / 512 = 114. Now if we read that LBA we can load 512 bytes into memory. Next we need to know our offset that our byte is in our buffer.
+
+Offset = 58376 ％ 512 = 8. 
+
+Then 114 * 512 = 58368 ;   58368 + 8 = 58376.
+
+ln 16 bit real mode the BIOS provides interrupt `13h` for disk operations.
+
+ln 32 bit mode you have to create your own disk driver which is a little more complicated.
+
 
 ---
+
+
 
 
 
