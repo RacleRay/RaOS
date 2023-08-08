@@ -37,6 +37,7 @@ step2:
     or eax, 0x1
     mov cr0, eax
     jmp CODE_SEG:load32    ; jmp to CODE_SEG selector and offset to load32
+    ; jmp $
 
 
 ; https://wiki.osdev.org/Global_Descriptor_Table
@@ -69,25 +70,59 @@ gdt_descriptor:
     dd gdt_start                ; offset
 
 
-; 32-bits mode
-; Can not access BIOS any more. Can not read from disk like read
-; sectors in real mode.
-; You have to use disk drivers to communicate with disk, to load 
-; the rest of kernel.
 [BITS 32]
 load32:
-    mov ax, DATA_SEG
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-    mov ebp, 0x00200000
-    mov esp, ebp
-    jmp $                 ; infinite jmp
+    mov eax, 1          ; starting sector
+    mov ecx, 100        ; 100 sectors
+    mov edi, 0x0100000  ; 1M, the address we load sectors into
+    call ata_lba_read   ; communicate with driver to load sectors
+
+
+; https://wiki.osdev.org/ATA_read/write_sectors
+; https://wiki.osdev.org/ATA_PIO_Mode
+;     === OLD FATION === 
+; The ATA disk specification is built around an older specification called ST506. 
+; With ST506, each disk drive was connected to a controller board by two cables 
+; -- a data cable, and a command cable. 
+; The controller board was plugged into a motherboard bus. 
+; The CPU communicated with the controller board through the CPU's IO ports, 
+; which were directly connected to the motherboard bus.
+ata_lba_read:
+    mov ebx, eax        ; backup the LBA
+    shr eax, 24         ; shift to the highest 8 bits of LBA to hard disk controller
+    mov dx, 0x1F6
+    out dx, al          ; out, communicate to the bus
+    ; finish sending the highest 8 bits of the lba          
+
+    ; send the total sectors to read
+    mov eax, ecx
+    mov dx, 0x1F2
+    out dx, al
+    ; finish send the total sectors to read
+
+    ; send more bits of the LBA
+    mov eax, ebx         ; restore the LBA
+    mov dx, 0x1F3
+    out dx, al
+
+    mov dx, 0x1F4
+    mov eax, ebx         ; restore the LBA for memory safe, maybe damaged
+    shr eax, 8
+    out dx, al
+
+    mov dx, 0x1F5
+    mov eax, ebx
+    shr eax, 16
+    out dx, al
+
+    mov dx, 0x1F7
+    mov al, 0x20
+    out dx, al
+
+.next_sector:
+    push ecx
 
 
 ; 512bytes, the 511 and 512 byte must be boot signiture.
 times 510-($ - $$) db 0
 dw 0xAA55
-
