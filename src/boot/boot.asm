@@ -76,6 +76,7 @@ load32:
     mov ecx, 100        ; 100 sectors
     mov edi, 0x0100000  ; 1M, the address we load sectors into
     call ata_lba_read   ; communicate with driver to load sectors
+    jmp CODE_SEG:0x0100000
 
 
 ; https://wiki.osdev.org/ATA_read/write_sectors
@@ -90,6 +91,7 @@ load32:
 ata_lba_read:
     mov ebx, eax        ; backup the LBA
     shr eax, 24         ; shift to the highest 8 bits of LBA to hard disk controller
+    or eax, 0xE0        ; select the master drive
     mov dx, 0x1F6
     out dx, al          ; out, communicate to the bus
     ; finish sending the highest 8 bits of the lba          
@@ -104,24 +106,53 @@ ata_lba_read:
     mov eax, ebx         ; restore the LBA
     mov dx, 0x1F3
     out dx, al
+    ; finish send more bits of the LBA
 
+    ; send more bits of the LBA
     mov dx, 0x1F4
     mov eax, ebx         ; restore the LBA for memory safe, maybe damaged
     shr eax, 8
     out dx, al
+    ; finish send more bits of the LBA
 
+    ; send upper 16 bits of the LBA
     mov dx, 0x1F5
-    mov eax, ebx
+    mov eax, ebx         ; restore the LBA
     shr eax, 16
     out dx, al
+    ; finish send upper 16 bits of the LBA
 
     mov dx, 0x1F7
     mov al, 0x20
     out dx, al
 
+; read all sectors into memory
 .next_sector:
-    push ecx
+    push ecx             ; save for later
 
+.try_again:
+    mov dx, 0x1F7
+    in al, dx
+    test al, 8
+    jz .try_again        ; jump when test al, 8 fails.
+
+    ; read 256 words at a time (512 bytes)
+    mov ecx, 256
+    mov dx, 0x1F0
+
+    ; https://faydoc.tripod.com/cpu/insw.htm
+    ; a 286/386/486+ CPU instruction that allows the transfer of large amounts of data 
+    ; while using only a single instruction. 
+    ; Data is transferred at the maximum rate allowed by the PC’s data bus.
+    ; Every sample is 1 word in size, which equals 2 bytes of data.
+    ; Input word from I/O port specified in DX into memory location specified in ES:(E)DI
+    ; At this case, it will store the data in 0x1F0 to edi(0x0100000) address.
+    rep insw
+    pop ecx               ; restore pushed ecx, total number of sectors we read.
+    loop .next_sector     ; decrease the ecx and loop
+
+    ; end of reading
+    ret
 
 ; 512bytes, the 511 and 512 byte must be boot signiture.
 times 510-($ - $$) db 0

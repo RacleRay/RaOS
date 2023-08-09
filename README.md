@@ -1,5 +1,4 @@
-# RaOS
-OS from scratch
+
 
 ---
 
@@ -27,7 +26,8 @@ The BIOS is a kernel in its self.
 > The BIOS routines are generic and a standard (More on that later).
 
 
----
+
+
 
 ### The first step of bootloader
 
@@ -82,10 +82,10 @@ qemu-system-x86_64 -hda ./boot.bin
 ```
 
 > You can boot it from a USB stick
+>
 > ```sh
 > sudo dd if=./boot.bin of=/dev/sdb
 > ```
-
 
 ## Real Mode
 
@@ -174,8 +174,6 @@ mov byte al, [es:32]
 > Then set 0x7bfe and 0x7bff to value 0xffff.
 
 
----
-
 
 ## Interrputs
 
@@ -192,8 +190,8 @@ The table has 256 interrupt handlers. Every entry contains 4 bytes (OFFSET:SEGME
 The 0x13 interrupt will go to offset (0x13 * 4 = 0x46) from the beginning of Interrupt Vector Table.
 
   
----
 
+---
 
 ## Disk
 
@@ -230,9 +228,115 @@ ln 16 bit real mode the BIOS provides interrupt `13h` for disk operations.
 ln 32 bit mode you have to create your own disk driver which is a little more complicated.
 
 
+
+[READ SECTOR(S) INTO MEMORY](http://www.ctyme.com/intr/rb-0607.htm):  this shows how to use `interrput 13` to read data sectors into memory.
+
+
+
 ---
 
 
+
+## Protected Mode
+
+Protected mode is a processor state in x86 architectures which gives access to memory protection, more than 4GB address space.
+
+Protected mode allows you to protect memory from being accessed. It prevents user program talking with hardware.
+
+<img src="images/dev_mannul/image-20230806180838731.png" alt="image-20230806180838731" style="zoom:50%;" />
+
+Ring 1 and Ring 2 usually are at device driver privilege level. Ring 3 is at user application level.
+
+### Memory schemes
+
+#### Selectors
+
+Use segmentation registers as selector registers that point to data structures that describe `memory ranges` and `the premissions(ring level)`. 
+
+#### Paging
+
+Memory is virtual and what you address can point to somewhere entirely different in memory. It makes memory control easier to control.
+
+Paging is the most popular choice for memory schemes with kernel or operating system.
+
+Now we can address up to `4GB` of memory with 32-bit registers.  We are no longer limited to the `1MB` of memory provided by `real mode`.
+
+
+
+### Entering Protected Mode
+
+Before switching to protected mode, you must:
+
+- Disable interrupts, including [NMI](https://wiki.osdev.org/Non_Maskable_Interrupt) (as suggested by Intel Developers Manual).
+- Enable the [A20 Line](https://wiki.osdev.org/A20_Line).
+- Load the [Global Descriptor Table](https://wiki.osdev.org/Global_Descriptor_Table) with segment descriptors suitable for code, data, and stack.
+
+The Global Descriptor Table (GDT) is a binary data structure specific to the [IA-32](https://wiki.osdev.org/IA32_Architecture_Family) and [x86-64](https://wiki.osdev.org/X86-64) architectures. It contains entries telling the CPU about memory [segments](https://wiki.osdev.org/Segmentation). A similar [Interrupt Descriptor Table](https://wiki.osdev.org/Interrupt_Descriptor_Table) exists containing [task](https://wiki.osdev.org/Task) and [interrupt](https://wiki.osdev.org/Interrupts) descriptors.
+
+
+
+GDB test:
+
+```sh
+target remote | qemu-system-x86_64 -hda ./boot.bin -S -gdb stdio
+```
+
+<img src="images/dev_mannul/image-20230807161317319.png" alt="image-20230807161317319" style="zoom:40%;" />
+
+
+
+### A20 Line
+
+The A20 Address Line is the physical representation of the 21st bit (number 20, counting from 0) of any memory access.
+
+> On most newer computers starting with the IBM PS/2, the chipset has a FAST A20 option that can quickly enable the A20 line. 
+
+```assembly
+in al, 0x92   ; read from port 0x92 by processor bus
+or al, 2      ; change 1 bit
+out 0x92, al  ; write back by processor bus
+```
+
+> ```bash
+> sudo apt install build-essential libgmp3-dev bison libmpfr-dev texinfo  libisl-dev
+> ```
+>
+> libcloog-isl-dev can`t find in package sourcess.
+
+
+
+---
+
+
+
+## Cross Compiler Install
+
+Follow tutorial [GCC Cross-Compiler - OSDev Wiki](https://wiki.osdev.org/GCC_Cross-Compiler) install  [Binutils](https://gnu.org/software/binutils/) and  [GCC](https://gnu.org/software/gcc/)( [note](https://stackoverflow.com/questions/9253695/building-gcc-requires-gmp-4-2-mpfr-2-3-1-and-mpc-0-8-0): run ./contrib/download_prerequisites before you run gcc-x.y.z/configure ).
+
+ We will no longer have the standard library and the system standard library. You have to write them yourself.
+
+We can use the new compiler like this:
+
+```sh
+$HOME/opt/cross/bin/$TARGET-gcc --version
+```
+
+To use your new compiler simply by invoking `$TARGET-gcc`, add `$HOME/opt/cross/bin` to your `$PATH` by typing:
+
+```sh
+export PATH="$HOME/opt/cross/bin:$PATH"
+```
+
+> Some test command:
+>
+> ```sh
+> # in gdb  0x100000 the code segment start.
+> add-symbol-file ./build/kernelfull.o 0x100000
+> 
+> break _start
+> 
+> target remote | qemu-system-x86_64 -S -gdb stdio -hda ./bin/os.bin
+> ```
 
 
 

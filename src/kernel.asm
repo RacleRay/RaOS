@@ -5,6 +5,7 @@
 ; the rest of kernel.
 [BITS 32]
 global _start
+extern kernel_main
 
 CODE_SEG equ 0x08   ; kernal code seg
 DATA_SEG equ 0x10   ; kernal data seg
@@ -24,4 +25,8 @@ _start:
     or al, 2
     out 0x92, al
 
+    call kernel_main
     jmp $                 ; infinite jmp
+
+
+times 512-($ - $$) db 0   ; alignment to 512 bytes
