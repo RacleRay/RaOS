@@ -339,6 +339,39 @@ export PATH="$HOME/opt/cross/bin:$PATH"
 > ```
 
 
+---
+
+## Text Mode
+
+Text mode allows you to write ASCII to video memory. And it support 16 unique colors. By using text mode, there is no need to set individual screen pixels for printing characters.
+
+You write ASCII characters into memory starting at address 0xB8000 for colored displays, or for monochrome displays address 0xB0000. Each ASCII character written to this memory has its pixel equivalent outputted to the monitor.
+
+[Default EGA 16-color palette](https://en.wikipedia.org/wiki/Enhanced_Graphics_Adapter): 
+
+| Index | Default palette number |  Default palette color   | rgbRGB | Hexadecimal |
+| :---: | :--------------------: | :----------------------: | :----: | :---------: |
+|   0   |           0            |          Black           | 000000 |   #000000   |
+|   1   |           1            |           Blue           | 000001 |   #0000AA   |
+|   2   |           2            |          Green           | 000010 |   #00AA00   |
+|   3   |           3            |           Cyan           | 000011 |   #00AAAA   |
+|   4   |           4            |           Red            | 000100 |   #AA0000   |
+|   5   |           5            |         Magenta          | 000101 |   #AA00AA   |
+|  20   |           6            |          Brown           | 010100 |   #AA5500   |
+|   7   |           7            |    White / light gray    | 000111 |   #AAAAAA   |
+|  56   |           8            | Dark gray / bright black | 111000 |   #555555   |
+|  57   |           9            |       Bright Blue        | 111001 |   #5555FF   |
+|  58   |           10           |       Bright green       | 111010 |   #55FF55   |
+|  59   |           11           |       Bright cyan        | 111011 |   #55FFFF   |
+|  60   |           12           |        Bright red        | 111100 |   #FF5555   |
+|  61   |           13           |      Bright magenta      | 111101 |   #FF55FF   |
+|  62   |           14           |      Bright yellow       | 111110 |   #FFFF55   |
+|  63   |           15           |       Bright white       | 111111 |   #FFFFFF   |
+
+We can use byte 0 to set ASCII character, and byte 1 to set color. E.g. `0xB8000 = 'A' 0xB8001 = 0x00` will set row 0 column 0 to `black 'A'`. `0xB8002 = 'B' 0xB8003 = 0x00` will set row 0 column 1 to `black 'B'`.
+
+
+---
 
 ## Reference
 
