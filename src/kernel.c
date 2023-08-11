@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "idt/idt.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -75,8 +76,11 @@ void print(const char* str) {
 }
 
 
+extern void problem();
+
+
 void kernel_main() {
-    terminal_initialize();
+    (void)terminal_initialize();
 
     // For test
     // video_mem[0] = 0x4103;  // little endian
@@ -87,4 +91,8 @@ void kernel_main() {
 
     print("Hello RaOS!\n");
 
+    (void)idt_init();
+
+    // test div 0 interrupt.
+    problem();
 }
