@@ -36,6 +36,6 @@ before_protected_mode:
 	dd if=/dev/zero bs=512 count=1 >> ./bin/boot_protected.bin
 
 clean:
-	rm -f ./bin/boot.bin ./bin/os.bin ./build/kernel.asm.o ./bin/kernel.bin
+	rm -f ./bin/boot.bin ./bin/os.bin ./bin/kernel.bin
 	rm -f ./build/kernelfull.o
 	rm -f ${FILES}
