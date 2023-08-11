@@ -6,7 +6,10 @@
 [BITS 32]
 global _start
 
-global problem
+; For IDT test
+; ---------------------------
+; global problem
+; ---------------------------
 
 extern kernel_main
 
@@ -28,13 +31,31 @@ _start:
     or al, 2
     out 0x92, al
 
+    ; Remap the master PIC
+    mov al, 00010001b   ; b4=1: init ; b3=0: Edge ; b1=0: Cascade ; b0=1: need 4th init step
+    out 0x20, al        ; tell master
+    
+    mov al, 0x20        ; master IRQ0 should be on INT 0x20 (just after intel exceptions)
+    out 0x21, al
+
+    mov al, 00000001b   ; b4=0: FNM ; b3-2=00: master/slave set by hardware; b1=0: not AEOI; b0=1: x86 mode 
+    out 0x21, al
+    ; End remap the master PIC
+
+    ; NOTE: there maybe some time frame before you set up the IDT.
+    ; NOTE: this will be fixed later.
+    sti
+
     call kernel_main
     jmp $                 ; infinite jmp
 
 
-problem:
-    mov eax, 0
-    div eax
+; For IDT test
+; ---------------------------
+; problem:
+;     mov eax, 0
+;     div eax
+; ---------------------------
 
 
 times 512-($ - $$) db 0   ; alignment to 512 bytes

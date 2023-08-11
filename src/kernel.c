@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "idt/idt.h"
+#include "io/io.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -75,8 +76,8 @@ void print(const char* str) {
     }
 }
 
-
-extern void problem();
+// For IDT test
+// extern void problem();
 
 
 void kernel_main() {
@@ -93,6 +94,8 @@ void kernel_main() {
 
     (void)idt_init();
 
-    // test div 0 interrupt.
-    problem();
+    // For IDT test. test div 0 interrupt.
+    // problem();
+
+    outb(0x60, 0xff);
 }

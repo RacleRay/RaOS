@@ -2,6 +2,7 @@
 #include "../kernel.h"
 #include "../memory/memory.h"
 #include "../config.h"
+#include "../io/io.h"
 
 
 struct idt_desc idt_descriptors[RAOS_TOTAL_INTERRUPTS];
@@ -9,10 +10,24 @@ struct idtr_desc idtr_descriptors;
 
 
 extern void idt_load(struct idtr_desc* ptr);
+extern void int21h();
+extern void no_interrupt();
 
 
-void idt_zero() {
-    print("Divide by zero error\n");
+// For IDT test
+// void idt_zero() {
+//     print("Divide by zero error\n");
+// }
+
+
+void int21h_handler() {
+    print("Keyboard pressed.\n");
+    outb(0x20, 0x20);
+}
+
+
+void no_interrupt_handler() {
+    outb(0x20, 0x20);  // tell PIC we handled the interrupt.
 }
 
 
@@ -35,8 +50,19 @@ void idt_init() {
     idtr_descriptors.limit = sizeof(idt_descriptors) - 1;
     idtr_descriptors.base = (uint32_t)idt_descriptors;
 
-    // regist the handler to div 0.
-    idt_set(0, idt_zero);
+    // init all interrupt to a default action.
+    for (int i = 0; i < RAOS_TOTAL_INTERRUPTS; ++i) {
+        idt_set(i, no_interrupt);
+    }
+
+    // For IDT test. regist the handler to div 0.
+    // idt_set(0, idt_zero);
+    idt_set(0x21, int21h);
+
+    // By using time IRQ, you constantlly switch function between processes, 
+    // and swap the task related registers, it gives you the illusion of multitasking running.
+    // idt_set(0x20, function);  
+    // idt_set(0x20, int21h);
 
     idt_load(&idtr_descriptors);
 }
