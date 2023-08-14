@@ -97,9 +97,16 @@ static uint8_t heap_get_entry_type(HEAP_BLOCK_TABLE_ENTRY entry) {
 }
 
 
+/**
+ * @brief Get the first valid heap memory block.
+ * 
+ * @param heap heap struct pointer
+ * @param total_blocks total blocks to malloc.
+ * @return int 
+ */
 int heap_get_start_block(struct heap* heap, uint32_t total_blocks) {
     struct heap_table* table = heap->table; // entry table
-    
+
     int bc = 0;  // current block index
     int bs = -1;  // the start block index
 
@@ -128,8 +135,15 @@ int heap_get_start_block(struct heap* heap, uint32_t total_blocks) {
 }
 
 
-void* heap_block_to_address(struct heap* heap, int block) {
-    return heap->saddr + (block * RAOS_HEAP_BLOCK_SIZE);
+/**
+ * @brief Get the start address of block_idx block.
+ * 
+ * @param heap 
+ * @param block_idx 
+ * @return void* 
+ */
+void* heap_block_to_address(struct heap* heap, int block_idx) {
+    return heap->saddr + (block_idx * RAOS_HEAP_BLOCK_SIZE);
 }
 
 
@@ -151,6 +165,13 @@ void heap_mark_blocks_taken(struct heap* heap, int start_block, int total_block)
 }
 
 
+/**
+ * @brief Try to get total_blocks memory.
+ * 
+ * @param heap 
+ * @param total_blocks number of blocks(4096 bytes each) we need.
+ * @return void* 
+ */
 void* heap_malloc_blocks(struct heap* heap, uint32_t total_blocks) {
     void* address = NULL;
 
@@ -168,6 +189,13 @@ out:
 }
 
 
+/**
+ * @brief Malloc size of bytes.
+ * 
+ * @param heap heap structure.
+ * @param size number of bytes
+ * @return void* the start pointer of malloced memory.
+ */
 void* heap_malloc(struct heap* heap, size_t size) {
     size_t aligned_size = heap_round_value_to_upper(size);
     uint32_t total_blocks = aligned_size / RAOS_HEAP_BLOCK_SIZE;
@@ -175,6 +203,13 @@ void* heap_malloc(struct heap* heap, size_t size) {
 }
 
 
+/**
+ * @brief Heap address to the corresponding block index.
+ * 
+ * @param heap 
+ * @param address 
+ * @return int 
+ */
 int heap_address_to_block(struct heap* heap, void* address) {
     return ((int)(address - heap->saddr)) / RAOS_HEAP_BLOCK_SIZE;
 }
@@ -193,6 +228,12 @@ void heap_mark_block_free(struct heap* heap, int start_block) {
 }
 
 
+/**
+ * @brief Free the serial blocks starting from ptr, which ended with 0x01 byte entry.
+ * 
+ * @param heap heap structure.
+ * @param ptr starting address of memory block to free.
+ */
 void heap_free(struct heap* heap, void* ptr) {
     int start_block = heap_address_to_block(heap, ptr);
     heap_mark_block_free(heap, start_block);

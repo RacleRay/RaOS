@@ -22,7 +22,6 @@ struct heap_table {
 
 struct heap {
     struct heap_table* table;
-
     // the start address of the heap data pool.
     void *saddr;
 };
