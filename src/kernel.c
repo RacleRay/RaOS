@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "idt/idt.h"
 #include "io/io.h"
+#include "memory/heap/kheap.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -76,6 +77,7 @@ void print(const char* str) {
     }
 }
 
+
 // For IDT test
 // extern void problem();
 
@@ -92,10 +94,26 @@ void kernel_main() {
 
     print("Hello RaOS!\n");
 
+    kheap_init();
+
     (void)idt_init();
 
     // For IDT test. test div 0 interrupt.
     // problem();
 
-    outb(0x60, 0xff);
+    // For textmode output test
+    // outb(0x60, 0xff);
+
+    // For kernel malloc test
+    void* ptr1 = kmalloc(50);
+    void* ptr2 = kmalloc(5000);
+    void* ptr3 = kmalloc(5600);
+
+    kfree(ptr1);
+    void* ptr4 = kmalloc(50);
+
+    if (ptr1 || ptr2 || ptr3 || ptr4) { }
+
+
+    return;
 }
