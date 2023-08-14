@@ -7,4 +7,11 @@
 #define KERNEL_CODE_SELECTOR 0x08 
 #define KERNEL_DATA_SELECTOR 0x10
 
+// Naive implementation. 100M size of kernel heap.
+#define RAOS_HEAP_SIZE_BYTES 104857600
+#define RAOS_HEAP_BLOCK_SIZE 4096
+
+#define RAOS_HEAP_ADDRESS 0x01000000
+#define RAOS_HEAP_TABLE_ADDRESS 0x00007E00
+
 #endif
