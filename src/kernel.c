@@ -94,9 +94,14 @@ void kernel_main() {
 
     print("Hello RaOS!\n");
 
+    // kerneal heap initialization.
     kheap_init();
 
+    // IDT initialization.
     (void)idt_init();
+
+    // enable interrupts after IDT initialized.
+    enable_interrupts();
 
     // For IDT test. test div 0 interrupt.
     // problem();

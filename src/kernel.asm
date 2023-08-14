@@ -44,7 +44,8 @@ _start:
 
     ; NOTE: there maybe some time frame before you set up the IDT.
     ; NOTE: this will be fixed later.
-    sti
+    ; So: write the enable_interrupts function, invoked in kernel_main function.
+    ; sti
 
     call kernel_main
     jmp $                 ; infinite jmp
