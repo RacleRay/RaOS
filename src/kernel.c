@@ -2,6 +2,7 @@
 #include "idt/idt.h"
 #include "io/io.h"
 #include "memory/heap/kheap.h"
+#include "memory/paging/paging.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -78,6 +79,9 @@ void print(const char* str) {
 }
 
 
+static struct paging_4gb_chunk* kernel_chunk = NULL;
+
+
 // For IDT test
 // extern void problem();
 
@@ -99,6 +103,15 @@ void kernel_main() {
 
     // IDT initialization.
     (void)idt_init();
+
+    // Setup paging
+    kernel_chunk = paging_new_4gb(PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+
+    // Switch to kernel paging chunk
+    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+
+    // Enable paginng
+    enable_paging();
 
     // enable interrupts after IDT initialized.
     enable_interrupts();
