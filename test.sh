@@ -3,5 +3,6 @@
 ## test before_protected_mode
 # qemu-system-x86_64 -hda ./bin/boot.bin
 
-qemu-system-x86_64 -hda ./bin/os.bin
+#qemu-system-x86_64 -hda ./bin/os.bin
+qemu-system-i386 -hda ./bin/os.bin
 

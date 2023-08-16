@@ -373,6 +373,240 @@ We can use byte 0 to set ASCII character, and byte 1 to set color. E.g. `0xB8000
 
 ---
 
+##  Interrupt Descriptor Table
+
+> [Reference](https://wiki.osdev.org/Interrupt_Descriptor_Table)
+
+Interrupt descriptor table describes how interrupts are invoked in protected mode.  Similarly to the interrupt vector table, the interrupt descriptor table describes how interrupts are setup in the CPU so that if someone causes an "int 5", it will invoke the code for interrupt 5 as described by the interrupt descriptor table.
+
+> Interrupt descriptor table can be mapped anywhere in memory. 
+>
+> It is different from the `interrupt vector table`.
+
+```c
+struct idt_desc {
+   uint16_t offset_1;        // offset bits 0..15
+   uint16_t selector;        // a code segment selector in GDT or LDT
+   uint8_t  zero;            // unused, set to 0
+   uint8_t  type_attributes; // gate type, dpl, and p fields
+   uint16_t offset_2;        // offset bits 16..31
+} __attribute__((packed));   // keep it as it is, no alignment
+```
+
+How a certain interrupt is served depends on which kind of gate you put in the IDT entry. 
+
+- An **Interrupt Gate** is used to specify an **[Interrupt Service Routine](https://wiki.osdev.org/Interrupt_Service_Routines)**. Interrupts gates are to be used for interrupts that we want to invoke our code. The value is (0x05 / 0b0101) in 32-bit mode.
+- A **Trap Gate** should be used to handle **[Exceptions](https://wiki.osdev.org/Exceptions)**.  Trap gates are like interrupt gates, however they are used for exceptions. They also disable interrupts on entry and re-enable them on an "iret" instruction. The value is (0x06 / 0b0110) in 16-bit mode and (0x0F / 0xb1111) in 32-bit mode.
+- A **Task Gate** is a gate type specific to IA-32 that is used for hardware task switching. Tasks gates reference TSS descriptors and can assist in multi-tasking when exceptions occur. The value is (0x07 / 0b0111) in 16-bit and (0x0E / 0b1110) in 32-bit mode.
+
+Interrupt descriptors are stored in an array with index 0 defining interrupt zero "int 0". Index 1 defining interrupt one "int 1" and so on. It just like array structure.
+
+The IDTR(Interrupt Descriptor Table Register) structure, saves the IDT base address and the length of IDT: 
+
+```c
+struct idtr_desc {
+    uint16_t limit;  // the length of the IDT minus one
+    uint32_t base;   // the address of IDT
+} __attribute__((packed));
+```
+
+
+
+***
+
+
+
+## Programmable Interrupt Controller
+
+Programmable interrupt controller allows hardware to interrupt the processor state. The programmable interrupt controller allows different types of hardware to interrupt the processor such as the hard disk, keyboard and more.
+
+[Standard ISA(Industry Standard Architecture) IRQ(Interrupt Request)s](https://wiki.osdev.org/Interrupts):
+
+| IRQ  | Description                                                  |
+| ---- | ------------------------------------------------------------ |
+| 0    | Programmable Interrupt Timer Interrupt                       |
+| 1    | Keyboard Interrupt                                           |
+| 2    | Cascade (used internally by the two PICs. never raised)      |
+| 3    | COM2 (if enabled)                                            |
+| 4    | COM1 (if enabled)                                            |
+| 5    | LPT2 (if enabled)                                            |
+| 6    | Floppy Disk                                                  |
+| 7    | LPT1 / Unreliable ["spurious" interrupt](https://wiki.osdev.org/8259_PIC#Spurious_IRQs) (usually) |
+| 8    | CMOS real-time clock (if enabled)                            |
+| 9    | Free for peripherals / legacy SCSI / NIC                     |
+| 10   | Free for peripherals / SCSI / NIC                            |
+| 11   | Free for peripherals / SCSI / NIC                            |
+| 12   | PS2 Mouse                                                    |
+| 13   | FPU / Coprocessor / Inter-processor                          |
+| 14   | Primary ATA Hard Disk                                        |
+| 15   | Secondary ATA Hard Disk                                      |
+
+IRQ`s are mapped to a starting interrupt, for example 0x20: 
+
+- IRQ 0 would then be interrupt 0x20.
+- IRQ 1 would then be interrupt 0x21.
+- IRQ 2 would then be interrupt 0x22.
+
+By default some of the IRQ`s are mapped to interrupts 8-15. This is a problem as these interrupts are reserved in protected mode for exceptions. So we are required to **remap the PIC** (Programmable Interrupt Controller).
+
+The system has two PIC (Programmable Interrupt Controller), one for master ports(0x20 and 0x21) and the other for slave ports(0xA0 and 0xA1). The master handles IRQ 0-7, and the slave handles IRQ 8-15.
+
+And you must let the PIC controller know when you have handled the interrupt, which can be done by `outb` function. If you don`t acknowledge it, the PIC will no longer interrupt for that request.
+
+
+
+
+***
+
+
+
+## Heap
+
+In the C programming language you can point to any memory address in RAM regardless if you can access it or not.
+
+In protected mode we have certain restrictions, the processor is in a 32bit state. As we are running in a 32 bit mode we have access on to 32 bit memory addresses allowing us to address to a maximum of 4.29GB or 4294967296 bytes of ram regardless of how much system RAM is installed.
+
+When you boot up your system, the memory is in an initialized state, your BIOS will start initializing certain pieces of memory and so on. Video memory takes up portions of RAM. Hardware memory takes IJP portions of RAM. Unused parts of RAM are available for use.
+
+An array of uninitialized memory is available to us from address “ 0x01000000 ” (depending on the installed memory). And address: `0xC0000000` is reserved, this means the memory array we have at address 0x01000000 can give us a maximum of 3.22GB for a machine with 4GB physical memory or higher installed.
+
+The heap will be responsible for storing information in our kernel.
+
+### Implementation
+
+The simple implementation in this project consists of a giant table which describes  the pieces of free memories in the system. This table will describe which memory is taken, which memory is free and so on. We will call this the `entry table`.
+
+Using another pointer to a giant piece of free memory, this will be the actual heap data its self that `malloc` can use. We will call this the `data pool`. If our heap can allocate 100 MB of ram then the heap data pool will be 1 00MB in size.
+
+The heap implementation is block based, each address returned from "malloc" will be aligned to 4096 and will at least be 4096 in size. This may cause memory fragmentation problem.
+
+The item of the entry table is constructed in the following way:
+
+|   bit   |   7   |    6     |  5   |  4   |  3   |  2   |  1   | 0    |
+| :-----: | :---: | :------: | :--: | :--: | :--: | :--: | :--: | ---- |
+| meaning | HAS_N | IS_FIRST |  0   |  0   | ET_3 | ET_2 | ET_1 | ET_1 |
+
+HAS_N = Set if the entry to the right of current block is part of our allocation.
+
+IS_FIRST = Set if this is the first entry of our allocation.
+
+ET_3 to ET_0 = Set the type of the corresponding memory block in data pool, that is `block taken` or `block free`.
+
+Each entry byte describes 4096 bytes of data in the heap data pool.
+
+For example, "0xC1 0x81 0x81 0x01"，means the adjacent four blocks of memory in data pool is malloced to user.
+
+We allocate in memory blocks meaning misaligned sizes requested from our heap will result in wasted lost bytes. And there may be some small blocks of memory fragmentation, which can be solved by `paging` techniques.
+
+[More info](https://wiki.osdev.org/Memory_Map_(x86))
+
+
+
+> GDB test commands:
+>
+> ```sh
+> # in gdb  0x100000 the code segment start.
+> add-symbol-file ./build/kernelfull.o 0x100000
+> 
+> # qemu-system-i386 for 32-bit system test
+> # Use 32-bit system to avoid address mismatching potential problem.
+> target remote | qemu-system-i386 -S -gdb stdio -hda ./bin/os.bin
+> ```
+
+
+
+
+***
+
+
+
+## Paging
+
+Paging allows us to remap one memory address to another, so 0x100000 could point to 0x200000. Paging works in 4096 byte block sizes by default. The blocks are called pages. When paging is enabled the MMU (Memory Management Unit) will look at your allocated page tables to resolve virtual addresses into physical addresses. 
+
+> Essentially virtual address and physical address are just terms we used to explain how a piece of memory is being accessed.
+
+Physical addresses are absolute addresses in memory whose value points to the same address in memory. For example physical address 0x100000 points to address 0x100000.
+
+The structure of paging is like this:
+
+- 1024 page directories that point to 1024 page tables;
+- 1024 page table entries per page table;
+- Each page table entry covers 4096 bytes of memory.
+- Each “ 4096 ” byte block of memory is called a page.
+- 1024 * 1024 * 4096 = 4,294,967,296 Bytes / 4GB of addressable memory.
+
+
+
+Paging hides physical memory from processes. If we give each process its own page directory table then we can map the memory for the process.
+
+Hiding memory can be achieved by switching the page directories when moving between processes. All processes can access the same virtual memory addresses but they will point to different physical addresses.
+
+We can pretend we have the maximum amount of memory even if we do not. This is achieved by creating page tables that are not present. Once a process accesses this non-present address a page fault will occur. We can then load the page back into memory and the process had no idea.
+
+
+
+### Page Table Entry Structure
+
+| 31                            | 11     | 9    |      |      |      |      |      |      |      |    0 |
+| ----------------------------- | ------ | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---: |
+| Physical 4-KB Aligned Address | Avail. | G    | 0    | D    | A    | C    | W    | U    | R    |    P |
+
+- Page table 4-KB Aligned Address: The physical 4096 byte aligned address to the start of a page table.
+- G: Set to prevent TLB from updating the address in its cache if the CR3 register is reset.
+- D: If set this indicates the page has been written to.
+- A: Set to 1 by the CPU if this page is accessed.
+- C: Cache Disable Bit. Set to 1 to disable page caching.
+- W: If this bit is set then `write through caching` enabled if not then `write back` is enabled instead.
+- U: If this set then this page can be accessed by all privilege ring levels. If it is not set then only supervisor ring levels can access this page.
+- R: If this bit is set, the page is readable and writable, if its not set then this page is only readable. Note the WP bit in the CR0 register can allow writing in all cases for supervisor.
+- P: This bit is set if the page exists in real memory, if this page is not actually available then we the kernel developer should set this bit to zero. If someone accesses this memory, a "Page fault" will occur and we are expected to resolve it by loading the pages from disk storage.
+
+
+
+### Page Fault Exception
+
+The CPU will call the page fault interrupt 0x14 when their was a problem with paging. The exception is invoked:
+
+1. if you access a page in memory that does not have its "P (Present)" bit set.
+2. invoked if you access a page that is for supervisor but you are not supervisor.
+3. invoked if you write to a page that is read only and you are not supervisor.
+
+
+
+[More about paging](https://wiki.osdev.org/Paging)
+
+
+---
+
+## Read From Hard Disk
+
+### PCI IDE controller
+
+[IDE](https://wiki.osdev.org/PCI_IDE_Controller) is a keyword which refers to the electrical specification of the cables which connect ATA drives (like hard drives) to another device.  The drives use the ATA (Advanced Technology Attachment) interface. 
+
+IDE allows up to 4 drives to be connected.
+
+- ATA (Serial) (SATA): Used for modern hard drives.
+- ATA (Parallel): Used for hard drives.
+- ATAPI (Serial) (PATA): Used for modern optical drives.
+- ATAPI (Parallel): Commonly used for optical drives.
+
+When using SATA, data is transmitted bit by bit along a single wire. SATA interfaces generally offer higher transfer rates. For example, SATA III (SATA 3.0) can achieve speeds up to 6 Gbps (6 billion bits per second).
+
+When using PATA, data is transmitted simultaneously across multiple wires. Common versions include ATA-33, ATA-66, ATA-100, and ATA-133, with respective transfer rates of 33 MB/s, 66 MB/s, 100 MB/s, and 133 MB/s.
+
+Kernel programmers do not have to care if the drive is serial or parallel. Possible driver types:
+
+- primary master drive
+- primary slave drive
+- secondary master drive
+- secondary slave drive
+
+
+
+***
+
 ## Reference
 
 [OSDev](https://wiki.osdev.org/FAT)
