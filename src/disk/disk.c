@@ -1,22 +1,23 @@
 #include "disk.h"
+#include "../config.h"
 #include "../io/io.h"
 #include "../memory/memory.h"
-#include "../config.h"
 #include "../status.h"
+
 
 
 struct disk disk;
 
 /**
  * @brief Read data from master hard disk.
- * 
+ *
  * https://wiki.osdev.org/ATA_read/write_sectors
  * https://wiki.osdev.org/ATA_PIO_Mode
- * 
+ *
  * @param lba Logical block address
  * @param total number of blocks to read.
  * @param buf memory to save data.
- * @return int 
+ * @return int
  */
 int disk_read_sector(int lba, int total, void* buf) {
     // Same as boot.asm:ata_lba_read
@@ -48,16 +49,16 @@ int disk_read_sector(int lba, int total, void* buf) {
 
 void disk_search_and_init() {
     memset(&disk, 0, sizeof(disk));
-    disk.type = RAOS_DISK_TYPE_REAL;
+    disk.type        = RAOS_DISK_TYPE_REAL;
     disk.sector_size = RAOS_SECTOR_SIZE;
 }
 
 
 /**
  * @brief Get the index`th disk. Passing it to disk_read_block().
- * 
- * @param index 
- * @return struct disk* 
+ *
+ * @param index
+ * @return struct disk*
  */
 struct disk* disk_get(int index) {
     // TODO: this is simple implementation when only one disk exists.
@@ -71,14 +72,15 @@ struct disk* disk_get(int index) {
 
 /**
  * @brief Abstraction function to read data sectors from disk.
- * 
+ *
  * @param idisk get from disk_get()
  * @param lba logical block address.
  * @param total total sectors to read.
  * @param buf memory to save data
- * @return int 
+ * @return int
  */
-int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf) {
+int disk_read_block(struct disk* idisk, unsigned int lba, int total,
+                    void* buf) {
     if (idisk != &disk) {
         return -EIO;
     }
