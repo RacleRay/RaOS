@@ -102,6 +102,9 @@ void kernel_main() {
     // kerneal heap initialization.
     kheap_init();
 
+    // Search and initialize the disks.
+    (void)disk_search_and_init();
+
     // IDT initialization.
     (void)idt_init();
 
@@ -109,16 +112,16 @@ void kernel_main() {
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
 
     // Switch to kernel paging chunk
-    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+    (void)paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
 
     // Enable paginng
-    enable_paging();
-
-    char buf[512];
-    disk_read_sector(0, 1, buf);
+    (void)enable_paging();
 
     // enable interrupts after IDT initialized.
-    enable_interrupts();
+    (void)enable_interrupts();
+    
+    char buf[1024] = {0};
+    disk_read_block(disk_get(0), 0, 1, buf);
 
     // === Begin === For paging test
     // char* ptr = kzalloc(4096);  // physical address
