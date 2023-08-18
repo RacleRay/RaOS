@@ -3,6 +3,7 @@
 #include "io/io.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
+#include "disk/disk.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -113,22 +114,27 @@ void kernel_main() {
     // Enable paginng
     enable_paging();
 
+    char buf[512];
+    disk_read_sector(0, 1, buf);
+
     // enable interrupts after IDT initialized.
     enable_interrupts();
 
-    char* ptr = kzalloc(4096);  // physical address
-    paging_set(paging_4gb_chunk_get_directory(kernel_chunk), (void*)0x1000, (uint32_t)ptr | PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE);
+    // === Begin === For paging test
+    // char* ptr = kzalloc(4096);  // physical address
+    // paging_set(paging_4gb_chunk_get_directory(kernel_chunk), (void*)0x1000, (uint32_t)ptr | PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE);
 
-    char* ptr2 = (char*)0x1000;
-    ptr2[0] = 'A';
-    ptr2[1] = 'B';
-    print(ptr2);
-    print(ptr);
+    // char* ptr2 = (char*)0x1000;
+    // ptr2[0] = 'A';
+    // ptr2[1] = 'B';
+    // print(ptr2);
+    // print(ptr);
+    // === End === For paging test
 
-    // For IDT test. test div 0 interrupt.
+    // === For IDT test. test div 0 interrupt.
     // problem();
 
-    // For textmode output test
+    // === For textmode output test
     // outb(0x60, 0xff);
 
     // === Begin === For kernel malloc test

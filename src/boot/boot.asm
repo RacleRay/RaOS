@@ -73,7 +73,7 @@ gdt_descriptor:
 [BITS 32]
 load32:
     mov eax, 1          ; starting sector
-    mov ecx, 100        ; 100 sectors
+    mov ecx, 100        ; 100 sectors to read
     mov edi, 0x0100000  ; 1M, the address we load sectors into
     call ata_lba_read   ; communicate with driver to load sectors
     jmp CODE_SEG:0x0100000
@@ -89,40 +89,41 @@ load32:
 ; The CPU communicated with the controller board through the CPU's IO ports, 
 ; which were directly connected to the motherboard bus.
 ata_lba_read:
-    mov ebx, eax        ; backup the LBA
+    mov ebx, eax        ; backup the LBA (Logical  Block Address)
     shr eax, 24         ; shift to the highest 8 bits of LBA to hard disk controller
     or eax, 0xE0        ; select the master drive
-    mov dx, 0x1F6
+    mov dx, 0x1F6       ; write the highest 8 bits to port 0x1F6
     out dx, al          ; out, communicate to the bus
     ; finish sending the highest 8 bits of the lba          
 
     ; send the total sectors to read
-    mov eax, ecx
+    mov eax, ecx        ; read the number of sectors we need to eax
     mov dx, 0x1F2
     out dx, al
     ; finish send the total sectors to read
 
-    ; send more bits of the LBA
-    mov eax, ebx         ; restore the LBA
-    mov dx, 0x1F3
+    ; send the low 8 bits of the LBA
+    mov eax, ebx         ; restore the LBA (Logical  Block Address)
+    mov dx, 0x1F3        ; write it to port 0x1F3
     out dx, al
-    ; finish send more bits of the LBA
+    ; finish send the low 8 bits of the LBA
 
-    ; send more bits of the LBA
+    ; send the 8-16 bits of the LBA
     mov dx, 0x1F4
     mov eax, ebx         ; restore the LBA for memory safe, maybe damaged
     shr eax, 8
     out dx, al
-    ; finish send more bits of the LBA
+    ; finish send the 8-16 bits of the LBA
 
-    ; send upper 16 bits of the LBA
+    ; send the 16-24 bits of the LBA
     mov dx, 0x1F5
     mov eax, ebx         ; restore the LBA
     shr eax, 16
     out dx, al
-    ; finish send upper 16 bits of the LBA
+    ; finish send the 16-24 bits of the LBA
 
-    mov dx, 0x1F7
+    ; start to read the disk data    
+    mov dx, 0x1F7        ; set the status
     mov al, 0x20
     out dx, al
 
@@ -131,14 +132,14 @@ ata_lba_read:
     push ecx             ; save for later
 
 .try_again:
-    mov dx, 0x1F7
-    in al, dx
-    test al, 8
-    jz .try_again        ; jump when test al, 8 fails.
+    mov dx, 0x1F7        ; set the port to read
+    in al, dx            ; read status from port to al
+    test al, 8           ; test if data == 0x1000
+    jz .try_again        ; jump when test al, 8 fails, reading is not finished.
 
     ; read 256 words at a time (512 bytes)
     mov ecx, 256
-    mov dx, 0x1F0
+    mov dx, 0x1F0        ; set the port to read
 
     ; https://faydoc.tripod.com/cpu/insw.htm
     ; a 286/386/486+ CPU instruction that allows the transfer of large amounts of data 
@@ -147,7 +148,7 @@ ata_lba_read:
     ; Every sample is 1 word in size, which equals 2 bytes of data.
     ; Input word from I/O port specified in DX into memory location specified in ES:(E)DI
     ; At this case, it will store the data in 0x1F0 to edi(0x0100000) address.
-    rep insw
+    rep insw              ; read port data to ES:DI, two bytes at a time.
     pop ecx               ; restore pushed ecx, total number of sectors we read.
     loop .next_sector     ; decrease the ecx and loop
 
