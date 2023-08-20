@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "disk/disk.h"
+#include "disk/streamer.h"
 #include "fs/pparser.h"
 #include "idt/idt.h"
 #include "io/io.h"
@@ -108,13 +109,24 @@ void kernel_main() {
     // enable interrupts after IDT initialized.
     (void)enable_interrupts();
 
-    char buf[1024] = {0};
-    disk_read_block(disk_get(0), 0, 1, buf);
+    struct disk_stream* stream = diskstreamer_new(0);
+    diskstreamer_seek(stream, 0x201);  // 184
+
+    unsigned char ch = 0;  
+    diskstreamer_read(stream, &ch, 1);
+    while (1) {}
+
+    // === Begin === For disk block read test
+    // char buf[1024] = {0};
+    // disk_read_block(disk_get(0), 0, 1, buf);
+    // === End === For disk block read test
 
 
-    struct path_root* root_path = path_parse("0:/bin/hello.o", NULL);
-    if (root_path) {
-    }
+    // === Begin === For path parser test
+    // struct path_root* root_path = path_parse("0:/bin/hello.o", NULL);
+    // if (root_path) {
+    // }
+    // === End === For path parser test
 
     // === Begin === For paging test
     // char* ptr = kzalloc(4096);  // physical address
