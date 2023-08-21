@@ -2,7 +2,7 @@
 
 ---
 
-## bootloader
+## Bootloader
 
 A generally small program responsible for loading the kernel of an operating system.
 

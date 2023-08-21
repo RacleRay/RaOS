@@ -7,35 +7,11 @@ DATA_SEG equ gdt_data - gdt_start
 
 
 ; https://wiki.osdev.org/FAT for BIOS parameter block
-; 3 bytes space
-jmp short start
-nop
+_start:
+    jmp short start
+    nop
 
-; times 33 db 0  ; for BIOS parameter block
-
-; https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system
-; FAT16 Header
-OEMIdentifier db 'RAOS    '  ; 8 bytes
-BytesPerSector dw 0x200      ; usually ignored.
-SectorsPerCluster db 0x80
-ReservedSectors dw 200       ; will save the entire kernel
-FATCopies db 0x02
-RootDirEntries dw 0x40
-NumSectors dw 0x00           ; ignored
-MediaType db 0xF8
-SectorsPerFat dw 0x100
-SectorsPerTrack dw 0x20
-NumberOfHeads dw 0x40
-HiddenSectors dd 0x00
-SectorsBig dd 0x773594
-
-; Extended BPB( Dos 4.0 )
-DriveNumber db 0x80
-WinNTBit db 0x00
-Signature db 0x29
-VolumeID dd 0xD105
-VolumeIDString db 'RAOS BOOT  '  ; 11 bytes
-SystemIDString db 'FAT16   '
+times 33 db 0  ; for BIOS parameter block
 
 
 start:

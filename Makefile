@@ -12,7 +12,14 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
 # append to 100 sectors (512 bytes size)
-	dd if=/dev/zero bs=512 count=100 >> ./bin/os.bin  
+# dd if=/dev/zero bs=512 count=100 >> ./bin/os.bin
+# 16Mb for FAT16 boot  
+	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
+
+# file system test
+	sudo mount -t vfat ./bin/os.bin /mnt/d
+	sudo cp ./message.txt /mnt/d
+	sudo umount /mnt/d
 
 # kernel
 ./bin/kernel.bin: $(FILES)
