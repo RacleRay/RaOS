@@ -4,6 +4,7 @@
 #include "../memory/memory.h"
 #include "../memory/heap/kheap.h"
 #include "../status.h"
+#include "fat/fat16.h"
 
 
 struct filesystem* filesystems[RAOS_MAX_FILESYSTEMS];
@@ -29,7 +30,7 @@ static struct filesystem** fs_get_free_filesystem() {
 
 
 static void fs_static_load() {
-    // fs_insert_filesystem(fat_init());
+    fs_insert_filesystem(fat16_init());
 }
 
 
@@ -88,6 +89,7 @@ struct filesystem* fs_resolve(struct disk* disk) {
     struct filesystem* fs = 0;
 
     for (int i = 0; i < RAOS_MAX_FILESYSTEMS; ++i) {
+        // resolve return 0, means filesystem i is binded to this disk.
         if (filesystems[i] != NULL && filesystems[i]->resolve(disk) == 0) {
             fs = filesystems[i];
             break;

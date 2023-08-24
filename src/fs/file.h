@@ -29,7 +29,7 @@ typedef int(*FS_RESOLVE_FUNCTION)(struct disk* disk);  // check if it`s valid fs
 struct filesystem {
     // return 0 if it`s valid fs.
     FS_RESOLVE_FUNCTION resolve;
-    FS_OPEN_FUNCTION ope;
+    FS_OPEN_FUNCTION open;
 
     char name[20];
 };

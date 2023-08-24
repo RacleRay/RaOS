@@ -32,6 +32,20 @@ size_t strnlen(const char* ptr, size_t max_len) {
     return cnt;
 }
 
+
+// strncpy is better.
+char* strcpy(char *dest, const char* src) {
+    char* begin = dest;
+    while (*src != 0) {
+        *dest = *src;
+        ++src;
+        ++dest;
+    }
+    *dest = 0x00;
+    return begin;
+}
+
+
 bool isdigit(char c) {
     return c >= 48 && c <= 57;  // '0', '9'
 }

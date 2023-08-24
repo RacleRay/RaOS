@@ -2,6 +2,7 @@
 #include "disk/disk.h"
 #include "disk/streamer.h"
 #include "fs/pparser.h"
+#include "fs/file.h"
 #include "idt/idt.h"
 #include "io/io.h"
 #include "memory/heap/kheap.h"
@@ -89,6 +90,9 @@ void kernel_main() {
 
     // kerneal heap initialization.
     kheap_init();
+
+    // init file system
+    (void)fs_init();
 
     // Search and initialize the disks.
     (void)disk_search_and_init();
