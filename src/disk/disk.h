@@ -11,8 +11,10 @@ typedef unsigned int RAOS_DISK_TYPE;
 struct disk {
     RAOS_DISK_TYPE type;
     int            sector_size;
+    int id;
 
     struct filesystem* filesystem;
+    void* fs_private;  // used for internel interpratation
 };
 
 struct disk* disk_get(int index);
