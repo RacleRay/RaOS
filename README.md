@@ -577,7 +577,7 @@ The CPU will call the page fault interrupt 0x14 when their was a problem with pa
 [More about paging](https://wiki.osdev.org/Paging)
 
 
----
+***
 
 ## Read From Hard Disk
 
@@ -588,6 +588,7 @@ The CPU will call the page fault interrupt 0x14 when their was a problem with pa
 IDE allows up to 4 drives to be connected.
 
 - ATA (Serial) (SATA): Used for modern hard drives.
+
 - ATA (Parallel): Used for hard drives.
 - ATAPI (Serial) (PATA): Used for modern optical drives.
 - ATAPI (Parallel): Commonly used for optical drives.
@@ -603,6 +604,111 @@ Kernel programmers do not have to care if the drive is serial or parallel. Possi
 - secondary master drive
 - secondary slave drive
 
+> Since interrupts (like INT 13h) can't be called easily in protected mode or long mode, direct disk access through ports might be the only solution
+
+
+
+[More about write sectors](https://wiki.osdev.org/ATA_read/write_sectors)
+
+
+
+***
+
+
+
+## File System
+
+A file system is a structure that describes how information is laid on a disk. Disks are not aware of files. The operating system knows the filesystem structure, so the system knows how to read files from disk. `Files` do not exist on the disk, but the `data` does.
+
+###   File System Structure
+
+File system contains raw data for files. And it contains the filesystem structure header which explains things such as how many files are on the disk, where the root directory is located and so on.
+
+Without filesystems we would be forced to read and write data through the use of sector numbers, structure would not exist and corruption would be likely.
+
+Common file systems include, FAT16, FAT32, NTFS and more.
+
+### FAT16(File Allocation Table 16 bits per FAT entry)
+
+The first sector in this filesystem format is the boot sector on a disk. Fields also exist in this first sector that describe the filesystem such as how many reserved sectors follow this sector.
+
+Then follows the reserved sectors these are sectors ignored by the filesystem.
+
+Then follows the first file allocation table contains values that represent which clusters on the disk are taken and which are free.(A cluster is just a certain number of sectors joined together to represent one cluster)
+
+Next comes our second file allocation table, it`s optional though. And it depends on the FAT16 header in the boot sector.
+
+Now comes our root directory this explains what files/directories are in the root directory of the filesystem. Each entry has a relative name. One entry represents the file or directory name. One entry represents attributes such as read only. One entry represents the address of the first cluster representing the data on the disk. And more.
+
+Finally we have our data region, all the data is here.
+
+
+
+FAT16 uses clusters to represent data and subdirectories. Each cluster uses a fixed amount of sectors which is specified in the boot sector. 
+
+Every file in FAT16 needs to use at least one cluster for its data. This means a lot of storage is wasted for small files. It`s not the most efficient filesystem.
+
+FAT16 cannot store files larger than 2GB without large file support. With large file support 4GB is the maximum.
+
+
+
+FAT16 disk layout is like:
+
+| Name             | Size                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| Boot sector      | 512 bytes (assume sector size is 512 bytes)                  |
+| Reserved Sectors | Fat_header.reserved_sectors * 512                            |
+| FAT 1            | Fat_headers.sectors_per_fat * 512                            |
+| FAT2 (Optional)  | Fat_headers.sectors_per_fat * 512                            |
+| Root Directory   | Fat_header.root_dir_entries * sizeof(struct fat_directory_item). <br />rounded to next sector if needed |
+| Data Clusters    | --                                                           |
+
+
+
+Each entry in the table is 2 bytes long and represents a cluster in the data clusters region that is available or taken. 
+
+Clusters can chain together, for example a file larger than one cluster will use two clusters. The value that represents the first cluster in the file allocation table will contain the value of the next cluster. The final cluster will contain a value of 0xffff signifying that there are no more clusters. The size of a cluster is represented in the boot sector. 
+
+
+
+In the boot sector contains the maximum number of root directory entries we should not exceed this value when iterating through the root directory. When we have finished iterating through the root directory or a subdirectory, the first byte of the filename will be equal to zero.
+
+
+
+Directory entry attribute flags are:
+
+> 0x01 -- Read only
+>
+> 0x02 -- File hidden
+>
+> 0x04 -- System file do not move the clusters
+>
+> 0x08 -- Volume label
+>
+> 0x10 -- This is not a regular file it`s a subdirectory (if this bit is not set then this directory entry represents regular file)
+>
+> 0x20 -- Archived
+>
+> 0x40 -- Device
+>
+> 0x80 -- Reserved must not be changed by disk tools
+
+
+[More info](https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system)
+
+[FAT File/Folder Structure Info](https://intro2cs-cpp.blogspot.com/2014/09/back-to-basics-fat-filefolder-structure.html)
+
+
+
+***
+
+## VFS
+
+The VFS allows unlimited filesystems. Filesystem drivers can be loaded or unloaded on demand. And the programming interface to the filesystems remains the same for all filesystems.
+
+When a disk gets inserted, the system polls each filesystem and ask if the disk holds a filesystem it can manage. We call this resolving the filesystem. When a filesystem that can be used with the disk is found then the disk binds its self to its implementation.
+
+<img src="images/dev_mannul/image-20230824214813600.png" alt="image-20230824214813600" style="zoom:50%;" />
 
 
 ***
