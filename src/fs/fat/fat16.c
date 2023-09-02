@@ -110,6 +110,7 @@ struct fat_item_descriptor {
 };
 
 
+// For FAT16 filesystem internal use.
 struct fat_private {
     struct fat_h header;
     struct fat_directory root_directory;
