@@ -4,8 +4,6 @@
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 20
 
-#define RAOS_MAX_PATH 128
-
 #define ERROR(val) (void*)(val)
 #define ERROR_I(val) (int)(val)
 #define ISERR(val) ((int)(val) < 0)

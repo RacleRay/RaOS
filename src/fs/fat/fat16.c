@@ -5,6 +5,8 @@
 #include "../../disk/streamer.h"
 #include "../../memory/memory.h"
 #include "../../memory/heap/kheap.h"
+#include "../../kernel.h"
+#include "../../config.h"
 #include <stdint.h>
 
 
@@ -104,7 +106,7 @@ struct fat_item {
 };
 
 
-struct fat_item_descriptor {
+struct fat_file_descriptor {
     struct fat_item* item;
     uint32_t pos;
 };
@@ -325,6 +327,130 @@ out:
 }
 
 
+// Remove the redundant space
+static void fat16_to_proper_string(char** out, const char* in) {
+    // terminator or space
+    while (*in != 0x00 && *in != 0x20) {
+        **out = *in;
+        (*out)++;
+        in++;
+    }
+
+    if (*in == 0x20) {
+        **out = 0x00;  // terminated
+    }
+}
+
+
+static void fat16_get_full_relative_filename(struct fat_directory_item* item, char* out, int out_len) {
+    memset(out, 0, out_len);
+
+    char* out_tmp = out;
+    fat16_to_proper_string(&out_tmp, (const char*)item->filename);
+    
+    // process file extension
+    if (item->ext[0] != 0x00 && item->ext[0] != 0x20) {
+        *(out_tmp++) = '.';
+        fat16_to_proper_string(&out_tmp, (const char*)item->ext); 
+    }
+}
+
+
+static struct fat_directory* fat16_load_fat_directory(struct disk* disk, struct fat_directory_item* item) {
+    int res = 0;
+
+    return NULL;
+}
+
+
+// Clone directory item, remember to free it later.
+static struct fat_directory_item* fat16_clone_directory_item(struct fat_directory_item* item, int size) {
+    struct fat_directory_item* item_copy = NULL;
+    
+    if  (size < sizeof(struct fat_directory_item)) {
+        goto out;
+    }
+
+    item_copy = kzalloc(size);
+    if (!item_copy) {
+        goto out;
+    }
+
+    memcpy(item_copy, item, size);
+out:
+    return item_copy;
+}
+
+
+static struct fat_item* fat16_new_fat_item_for_directory_item(struct disk* disk, struct fat_directory_item* item) {
+    struct fat_item* f_item = kzalloc(sizeof(struct fat_item));
+    if (!f_item) {
+        return NULL;
+    }
+
+    if (item->attribute & FAT_FILE_SUBDIRECTORY) {
+        f_item->directory = fat16_load_fat_directory(disk, item);
+        f_item->type = FAT_ITEM_TYPE_DIRECTORY;
+    }
+
+    f_item->type = FAT_ITEM_TYPE_FILE;
+    f_item->item = fat16_clone_directory_item(item, sizeof(struct fat_directory_item));
+
+    // TODO
+    return NULL;
+}
+
+
+static struct fat_item* fat16_find_item_in_directory(struct disk* disk, struct fat_directory* directory, const char* name) {
+    struct fat_item* f_item = NULL;
+    
+    char tmp_filename[RAOS_MAX_PATH];
+
+    for (int i = 0; i < directory->total; i++) {
+        fat16_get_full_relative_filename(&directory->item[i], tmp_filename, sizeof(tmp_filename));
+
+        if (istrncmp(tmp_filename, name, sizeof(tmp_filename)) == 0) {
+            // found it and create a new item.
+            f_item = fat16_new_fat_item_for_directory_item(disk, &directory->item[i]);
+        }
+    }
+
+    return f_item;
+}
+
+
+static struct fat_item* fat16_get_directory_entry(struct disk* disk, struct path_part* path) {
+    struct fat_private* fat_private = disk->fs_private;
+    struct fat_item* current_item = 0;
+    // find the base part in root directory. e.g. 0:/a/b/c , then find the very first path part a
+    struct fat_item* root_item = fat16_find_item_in_directory(disk, &fat_private->root_directory, path->part);
+
+    if (!root_item) {
+        goto out;
+    }
+
+out:
+    return current_item;
+}
+
+
 void* fat16_open(struct disk* disk, struct path_part* path, FILE_MODE mode) {
-    return 0;
+    if (mode != FILE_MODE_READ) {
+        return ERROR(-ERDONLY);
+    }
+
+    struct fat_file_descriptor* file_descriptor = kzalloc(sizeof(struct fat_file_descriptor));
+
+    if (!file_descriptor) {
+        return ERROR(-ENOMEM);
+    }
+
+    file_descriptor->item = fat16_get_directory_entry(disk, path);
+    if (!file_descriptor->item) {
+        return ERROR(-EIO);
+    }
+
+    file_descriptor->pos = 0;
+
+    return file_descriptor;
 }
