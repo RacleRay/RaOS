@@ -113,12 +113,25 @@ void kernel_main() {
     // enable interrupts after IDT initialized.
     (void)enable_interrupts();
 
-    struct disk_stream* stream = diskstreamer_new(0);
-    diskstreamer_seek(stream, 0x201);  // 184
+    // === Begin === For fopen test 
+    int fd = fopen("0:/message.txt", "r");
+    if (fd) {
+        print("File message.txt opened!\n");
+    }
+    int fd2 = fopen("0:/not_exit.txt", "w");
+    if (fd2) {
+        print("File not_exit.txt opened!\n");
+    }
+    // === End === For fopen test
 
-    unsigned char ch = 0;  
-    diskstreamer_read(stream, &ch, 1);
-    while (1) {}
+    // === Begin === For disk read test 
+    // struct disk_stream* stream = diskstreamer_new(0);
+    // diskstreamer_seek(stream, 0x201);  // 184
+
+    // unsigned char ch = 0;  
+    // diskstreamer_read(stream, &ch, 1);
+    // === End === For disk read test
+
 
     // === Begin === For disk block read test
     // char buf[1024] = {0};
@@ -131,6 +144,7 @@ void kernel_main() {
     // if (root_path) {
     // }
     // === End === For path parser test
+
 
     // === Begin === For paging test
     // char* ptr = kzalloc(4096);  // physical address
@@ -145,11 +159,13 @@ void kernel_main() {
     // print(ptr);
     // === End === For paging test
 
+
     // === For IDT test. test div 0 interrupt.
     // problem();
 
     // === For textmode output test
     // outb(0x60, 0xff);
+
 
     // === Begin === For kernel malloc test
     // void* ptr1 = kmalloc(50);
@@ -162,6 +178,7 @@ void kernel_main() {
     // if (ptr1 || ptr2 || ptr3 || ptr4) { }
     // === End === For kernel malloc test
 
+    while (1) {}
 
     return;
 }

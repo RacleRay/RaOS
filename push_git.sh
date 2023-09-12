@@ -10,3 +10,5 @@ git push
 echo "Push success: [$msg]"
 echo "---------- End ----------"
 read -p "Press Enter to continue..."
+
+cp RaOS RaOS.bak
