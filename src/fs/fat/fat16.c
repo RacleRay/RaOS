@@ -128,12 +128,23 @@ struct fat_private {
 };
 
 
+// ==================================================================================
+// Init the FAT16 filesystem. Register the functions manipulating with the filesystem.
+
 int fat16_resolve(struct disk* disk);
 void* fat16_open(struct disk* disk, struct path_part* path, FILE_MODE mode);
+int fat16_read(struct disk* disk, void* desc, uint32_t size, uint32_t nmemb, char* out);
+// Change the file descriptor pos member in seek_mode.
+int fat16_seek(void* desc, uint32_t offset, FILE_SEEK_MODE seek_mode);
 
+
+// Register the functions manipulating with the filesystem.
+// This is important. The functions are called by system calls providing for users.
 struct filesystem fat16_fs = {
     .resolve = fat16_resolve,
-    .open = fat16_open
+    .open = fat16_open,
+    .read = fat16_read,
+    .seek = fat16_seek
 };
 
 
@@ -143,6 +154,7 @@ struct filesystem* fat16_init() {
 }
 
 
+// =================================================================================
 /**
  * @brief init the streamer to read the disk data.
  * 
@@ -736,4 +748,85 @@ err_out:
     }
 
     return ERROR(err_code);
+}
+
+
+/**
+ * @brief Read size * nmemb bytes from the desc file descriptor. 
+ * 
+ * @param disk disk to read from.
+ * @param desc file descriptor to read.
+ * @param size size of elements.
+ * @param nmemb number of elements to read.
+ * @param out output content.
+ * @return int  number of elements read.
+ */
+int fat16_read(struct disk* disk, void* desc, uint32_t size, uint32_t nmemb, char* output) {
+    int res = 0;
+    struct fat_file_descriptor* file_descriptor = desc;
+    // maybe directory or file.
+    struct fat_directory_item* item = file_descriptor->item->item;
+
+    int offset = file_descriptor->pos;
+    for (uint32_t i = 0; i < nmemb; i++) {
+        // read sized content from disk addressed by cluster address.
+        res = fat16_read_items_of_directory(disk, fat16_get_first_cluster_for_directory_item(item), offset, size, output);
+        if (ISERR(res)) {
+            goto out;
+        }
+
+        output += size;
+        offset += size;
+    };
+
+    res = nmemb;
+
+out:
+    return res;
+}
+
+
+/**
+ * @brief Change the file descriptor pos member in seek_mode.
+ * 
+ * @param desc file descriptor pointer.
+ * @param offset offset, used by specific seek mode.
+ * @param seek_mode SEEK_SET, SEEK_CUR(offset to pos member), SEEK_END(not implemented)
+ * @return int 0 if success, else error code.
+ */
+int fat16_seek(void* desc, uint32_t offset, FILE_SEEK_MODE seek_mode) {
+    int ret_status = 0;
+
+    struct fat_file_descriptor* file_descriptor = desc;
+    struct fat_item* item = file_descriptor->item;
+
+    if (item->type != FAT_ITEM_TYPE_FILE) {
+        ret_status = -EINVARG;
+        goto out;
+    }
+
+    // get the contents on the disk.
+    struct fat_directory_item* file_item = item->item;
+    if (offset >= file_item->filesize) {
+        ret_status = -EIO;
+        goto out;
+    }
+
+    switch (seek_mode) {
+        case SEEK_SET:
+            file_descriptor->pos = offset;
+            break;
+        case SEEK_END:
+            ret_status = -EUNIMP;
+            break;
+        case SEEK_CUR:
+            file_descriptor->pos += offset;
+            break;
+        default:
+            ret_status = -EINVARG;
+            break;
+    }
+
+out:
+    return ret_status;
 }

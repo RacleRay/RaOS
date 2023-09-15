@@ -117,6 +117,14 @@ void kernel_main() {
     int fd = fopen("0:/message.txt", "r");
     if (fd) {
         print("File message.txt opened!\n");
+        char buf[32];
+        fread(buf, 7, 1, fd);
+        print(buf);
+        print("\nAfter fseek. \n");
+
+        fseek(fd, 5, SEEK_CUR);
+        fread(buf, 7, 1, fd);
+        print(buf);
     }
     int fd2 = fopen("0:/not_exit.txt", "w");
     if (fd2) {

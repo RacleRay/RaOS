@@ -2,8 +2,9 @@
 #define _FILE_H
 
 #include "pparser.h"
+#include <stdint.h>
 
-typedef unsigned int FILE_SEEK_MOED;
+typedef unsigned int FILE_SEEK_MODE;
 
 enum {
     SEEK_SET,
@@ -23,13 +24,20 @@ enum {
 struct disk;
 
 typedef void*(*FS_OPEN_FUNCTION)(struct disk* disk, struct path_part* path, FILE_MODE mode);
-typedef int(*FS_RESOLVE_FUNCTION)(struct disk* disk);  // check if it`s valid fs
 
+// read nmemb * size bytes to out. fsprivate is actually the file descriptor struct object.
+typedef int (*FS_READ_FUNCTION)(struct disk* disk, void* fsprivate, uint32_t size, uint32_t nmemb, char* out);
+
+typedef int (*FS_RESOLVE_FUNCTION)(struct disk* disk);  // check if it`s valid fs
+
+typedef int (*FS_SEEK_FUNCTION)(void* fsprivate, uint32_t offset, FILE_SEEK_MODE seek_mode);
 
 struct filesystem {
     // return 0 if it`s valid fs.
     FS_RESOLVE_FUNCTION resolve;
     FS_OPEN_FUNCTION open;
+    FS_READ_FUNCTION read;
+    FS_SEEK_FUNCTION seek;
 
     char name[20];
 };
@@ -47,6 +55,11 @@ struct file_descriptor {
 
 void fs_init();
 int fopen(const char* filename, const char* mode);
+// read nmemb * size bytes to ptr.
+int fread(void* ptr, uint32_t size, uint32_t nmemb, int fd);
+
+int fseek(int fd, int offset, FILE_SEEK_MODE whence);
+
 void fs_insert_filesystem(struct filesystem* filesystem);
 struct filesystem* fs_resolve(struct disk* disk);
 
