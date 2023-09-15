@@ -74,6 +74,7 @@ static struct file_descriptor* file_get_descriptor(int fd) {
     return filedescriptors[fd - 1];  // descriptor start at 1
 }
 
+
 /**
  * @brief Insert a file system into filesystems global array.
  * 
@@ -154,6 +155,7 @@ static FILE_MODE file_get_mode_by_string(const char* str) {
 
     return mode;
 }
+
 
 /**
  * @brief This function will parse the filename and mode_str. In the function, FAT16 
@@ -261,6 +263,14 @@ out:
 }
 
 
+/**
+ * @brief Change the file descriptor pos member in seek_mode(whence).
+ * 
+ * @param fd 
+ * @param offset 
+ * @param whence 
+ * @return int 
+ */
 int fseek(int fd, int offset, FILE_SEEK_MODE whence) {
     int res = 0;
 
@@ -276,3 +286,52 @@ int fseek(int fd, int offset, FILE_SEEK_MODE whence) {
 out:
     return res;
 }
+
+
+// file attributes statistics.
+int fstat(int fd, struct file_stat *stat) {
+    int res = 0;
+    
+    struct file_descriptor* descriptor = file_get_descriptor(fd);
+    if (!descriptor) {
+        res = -EIO;
+        goto out;
+    } 
+
+    res = descriptor->filesystem->stat(descriptor->disk,descriptor->private_, stat);
+    
+out:
+    return res;
+}
+
+
+
+/**
+ * @brief Free file descriptor in global filedescriptors array.
+ * 
+ * @param fdesc 
+ */
+static void file_free_descriptor(struct file_descriptor* fdesc) {
+    filedescriptors[fdesc->index - 1] = 0x00;
+    kfree(fdesc);
+}
+
+
+int fclose(int fd) {
+    int res = 0;
+
+    struct file_descriptor* descriptor = file_get_descriptor(fd);
+    if (!descriptor) {
+        res = -EIO;
+        goto out;
+    }
+
+    res = descriptor->filesystem->close(descriptor->private_);
+    if (res == RAOS_ALL_OK) {
+        file_free_descriptor(descriptor);
+    }
+
+out:
+    return res;
+}
+

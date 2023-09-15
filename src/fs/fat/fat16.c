@@ -136,6 +136,8 @@ void* fat16_open(struct disk* disk, struct path_part* path, FILE_MODE mode);
 int fat16_read(struct disk* disk, void* desc, uint32_t size, uint32_t nmemb, char* out);
 // Change the file descriptor pos member in seek_mode.
 int fat16_seek(void* desc, uint32_t offset, FILE_SEEK_MODE seek_mode);
+int fat16_stat(struct disk* disk, void* desc, struct file_stat* stat);
+int fat16_close(void* desc);
 
 
 // Register the functions manipulating with the filesystem.
@@ -144,7 +146,9 @@ struct filesystem fat16_fs = {
     .resolve = fat16_resolve,
     .open = fat16_open,
     .read = fat16_read,
-    .seek = fat16_seek
+    .seek = fat16_seek,
+    .stat = fat16_stat,
+    .close = fat16_close
 };
 
 
@@ -829,4 +833,61 @@ int fat16_seek(void* desc, uint32_t offset, FILE_SEEK_MODE seek_mode) {
 
 out:
     return ret_status;
+}
+
+
+/**
+ * @brief Get the file size and file permission flags. 
+ * 
+ * @param disk
+ * @param fsprivate FAT file descriptor.
+ * @param stat file stat out.
+ * @return int 
+ */
+int fat16_stat(struct disk* disk, void* desc, struct file_stat* stat) {
+    int res = 0;
+
+    struct fat_file_descriptor* fat_f_desc = (struct fat_file_descriptor*)desc;
+    struct fat_item* item = fat_f_desc->item;
+
+    if (item->type != FAT_ITEM_TYPE_FILE) {
+        res = -EINVARG;
+        goto out;
+    }
+
+    struct fat_directory_item* file_item = item->item;
+    
+    stat->size = file_item->filesize;
+    stat->flags = 0x00;
+
+    if (file_item->attribute & FAT_FILE_READ_ONLY) {
+        stat->flags |= FAT_FILE_READ_ONLY;
+    }
+
+out:
+    return res;
+}
+
+
+/**
+ * @brief Free the fat16 file descriptor.
+ * 
+ * @param desc 
+ */
+static void free_fat16_file_descriptor(struct fat_file_descriptor* desc) {
+    fat16_fat_item_free(desc->item);
+    kfree(desc);
+}
+
+
+/**
+ * @brief This will clean up the fat16 file descriptor.
+ *        But it cant clean up the file descriptor generated
+ * 
+ * @param desc 
+ * @return int 
+ */
+int fat16_close(void* desc) {
+    free_fat16_file_descriptor(desc);
+    return 0;
 }

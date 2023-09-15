@@ -69,6 +69,12 @@ void print(const char* str) {
 }
 
 
+void panic(const char* msg) {
+    print(msg);
+    while (1) {}
+}
+
+
 static struct paging_4gb_chunk* kernel_chunk = NULL;
 
 
@@ -125,6 +131,14 @@ void kernel_main() {
         fseek(fd, 5, SEEK_CUR);
         fread(buf, 7, 1, fd);
         print(buf);
+        print("\n\n");
+
+        struct file_stat stat;
+        fstat(fd, &stat);
+
+        fclose(fd);
+        
+        print("file descriptor closed.\n");
     }
     int fd2 = fopen("0:/not_exit.txt", "w");
     if (fd2) {

@@ -1,4 +1,15 @@
+## Get to debug with GDB
+```sh
+gdb
 
+add-symbol-file ./build/kernelfull.o 0x100000
+
+# set break point
+
+target remote | qemu-system-i386 -hda ./bin/os.bin -S -gdb stdio
+
+# run
+```
 
 ---
 
