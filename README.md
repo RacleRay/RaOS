@@ -724,6 +724,34 @@ When a disk gets inserted, the system polls each filesystem and ask if the disk 
 
 ***
 
+## User Land
+User land is not a special place where processes run, its simply a term to describe the processor when its in a privilege limited state.
+
+User land is safe because if something goes wrong the kernel is able to intervene. User land is in ring 3 privilege.
+
+> Kernel Land. Kernel land is when the processor is in it`s maximum privileged state. There`s also a high risk Of damage to the system if things go wrong. Kernel land is when the processor is in a privileged protection ring such as ring 0.
+
+Using paging the kernel can ensure all processes cannot access each others memory. User land code is unable to override this because its running in an unprivileged state. The instructions for switching pages are disabled.
+
+Attempting to run privileged instructions whilst in user land will cause a protection fault. The protection fault exception interrupt handler will then be responsible for solving the problem.
+
+How to dev:
+
+1. Setup user code and data segments.
+2. Setup a TSS(Task Switch Segment).
+3. Pretend we are returning from an interrupt, pushing appropriate flags and data to the stack before executing an "iret" instruction to change the processors privilege state.
+
+> TSS (Task Switch Segment): The task switch segment is a way for the processor to get back to kernel land when we have a system interrupt. The task switch segment explains things such as where the kernel stack is located. 
+
+> Upon receiving an interrupt when the processor is in user land state, the processor will switch to the kernel code and data segments. It will then restore the stack pointer located in the TSS(Task Switch Segment) before, then invoking the kernel interrupt handler.
+
+ln a multi-tasking system, user land registers will need to be salvaged when entering kernel land, this is important so we can switch to the next processor task if we want to．
+
+When ever we want to switch back to the a task we just swap the old registers of the task back to the real CPU registers again, and then finally we drop the processor back into user land. The task will then continue executing as if nothing happened.
+
+
+***
+
 ## Reference
 
 [OSDev](https://wiki.osdev.org/FAT)

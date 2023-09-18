@@ -46,9 +46,14 @@ DATA_SEG	src/kernel.asm	/^DATA_SEG equ 0x10   ; kernal data seg$/;"	d	language:A
 Disk	README.md	/^## Disk$/;"	s	language:Markdown
 DriveNumber	src/boot/boot.asm	/^DriveNumber db 0x80$/;"	d	language:Asm
 EBADPATH	src/status.h	/^#define EBADPATH /;"	d	language:C++
+EFSNOTUS	src/status.h	/^#define EFSNOTUS /;"	d	language:C++
 EINVARG	src/status.h	/^#define EINVARG /;"	d	language:C++
 EIO	src/status.h	/^#define EIO /;"	d	language:C++
 ENOMEM	src/status.h	/^#define ENOMEM /;"	d	language:C++
+ERDONLY	src/status.h	/^#define ERDONLY /;"	d	language:C++
+ERROR	src/kernel.h	/^#define ERROR(/;"	d	language:C++	signature:(val)
+ERROR_I	src/kernel.h	/^#define ERROR_I(/;"	d	language:C++	signature:(val)
+EUNIMP	src/status.h	/^#define EUNIMP /;"	d	language:C++
 Entering Protected Mode	README.md	/^### Entering Protected Mode$/;"	S	language:Markdown
 FAT16(File Allocation Table 16 bits per FAT entry)	README.md	/^### FAT16(File Allocation Table 16 bits per FAT entry)$/;"	S	language:Markdown
 FATCopies	src/boot/boot.asm	/^FATCopies db 0x02$/;"	d	language:Asm
@@ -69,12 +74,19 @@ FILE_MODE_APPEND	src/fs/file.h	/^    FILE_MODE_APPEND,$/;"	e	language:C++	enum:_
 FILE_MODE_INVALID	src/fs/file.h	/^    FILE_MODE_INVALID$/;"	e	language:C++	enum:__anond486e55a0203
 FILE_MODE_READ	src/fs/file.h	/^    FILE_MODE_READ,$/;"	e	language:C++	enum:__anond486e55a0203
 FILE_MODE_WRITE	src/fs/file.h	/^    FILE_MODE_WRITE,$/;"	e	language:C++	enum:__anond486e55a0203
-FILE_SEEK_MOED	src/fs/file.h	/^typedef unsigned int FILE_SEEK_MOED;$/;"	t	language:C++	typeref:typename:unsigned int
+FILE_SEEK_MODE	src/fs/file.h	/^typedef unsigned int FILE_SEEK_MODE;$/;"	t	language:C++	typeref:typename:unsigned int
+FILE_STAT_FLAGS	src/fs/file.h	/^typedef unsigned int FILE_STAT_FLAGS;$/;"	t	language:C++	typeref:typename:unsigned int
+FILE_STAT_READ_ONLY	src/fs/file.h	/^    FILE_STAT_READ_ONLY = 0b00000001,$/;"	e	language:C++	enum:__anond486e55a0303
 FLAGS	Makefile	/^FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrengt/;"	m	language:Make
+FS_CLOSE_FUNCTION	src/fs/file.h	/^typedef int (*FS_CLOSE_FUNCTION)(void* fsprivate);$/;"	t	language:C++	typeref:typename:int (*)(void * fsprivate)
 FS_OPEN_FUNCTION	src/fs/file.h	/^typedef void*(*FS_OPEN_FUNCTION)(struct disk* disk, struct path_part* path, FILE_MODE mode);$/;"	t	language:C++	typeref:typename:void * (*)(struct disk * disk,struct path_part * path,FILE_MODE mode)
-FS_RESOLVE_FUNCTION	src/fs/file.h	/^typedef int(*FS_RESOLVE_FUNCTION)(struct disk* disk);  \/\/ check if it`s valid fs$/;"	t	language:C++	typeref:typename:int (*)(struct disk * disk)
+FS_READ_FUNCTION	src/fs/file.h	/^typedef int (*FS_READ_FUNCTION)(struct disk* disk, void* fsprivate, uint32_t size, uint32_t nmem/;"	t	language:C++	typeref:typename:int (*)(struct disk * disk,void * fsprivate,uint32_t size,uint32_t nmemb,char * out)
+FS_RESOLVE_FUNCTION	src/fs/file.h	/^typedef int (*FS_RESOLVE_FUNCTION)(struct disk* disk);  \/\/ check if it`s valid fs$/;"	t	language:C++	typeref:typename:int (*)(struct disk * disk)
+FS_SEEK_FUNCTION	src/fs/file.h	/^typedef int (*FS_SEEK_FUNCTION)(void* fsprivate, uint32_t offset, FILE_SEEK_MODE seek_mode);$/;"	t	language:C++	typeref:typename:int (*)(void * fsprivate,uint32_t offset,FILE_SEEK_MODE seek_mode)
+FS_STAT_FUNCTION	src/fs/file.h	/^typedef int (*FS_STAT_FUNCTION)(struct disk* disk, void* fsprivate, struct file_stat* stat);$/;"	t	language:C++	typeref:typename:int (*)(struct disk * disk,void * fsprivate,struct file_stat * stat)
 File System	README.md	/^## File System$/;"	s	language:Markdown
 File System Structure	README.md	/^###   File System Structure$/;"	S	language:Markdown
+Get to debug with GDB	README.md	/^## Get to debug with GDB$/;"	s	language:Markdown
 HEAP_BLOCK_HAS_NEXT	src/memory/heap/heap.h	/^#define HEAP_BLOCK_HAS_NEXT /;"	d	language:C++
 HEAP_BLOCK_IS_FIRST	src/memory/heap/heap.h	/^#define HEAP_BLOCK_IS_FIRST /;"	d	language:C++
 HEAP_BLOCK_TABLE_ENTRY	src/memory/heap/heap.h	/^typedef unsigned char HEAP_BLOCK_TABLE_ENTRY;$/;"	t	language:C++	typeref:typename:unsigned char
@@ -83,6 +95,7 @@ HEAP_BLOCK_TABLE_ENTRY_TAKEN	src/memory/heap/heap.h	/^#define HEAP_BLOCK_TABLE_E
 Heap	README.md	/^## Heap$/;"	s	language:Markdown
 HiddenSectors	src/boot/boot.asm	/^HiddenSectors dd 0x00$/;"	d	language:Asm
 INCLUDES	Makefile	/^INCLUDES = -I.\/src$/;"	m	language:Make
+ISERR	src/kernel.h	/^#define ISERR(/;"	d	language:C++	signature:(val)
 Implementation	README.md	/^### Implementation$/;"	S	language:Markdown
 Interrputs	README.md	/^## Interrputs$/;"	s	language:Markdown
 Interrputs Table	README.md	/^### Interrputs Table$/;"	S	language:Markdown
@@ -126,7 +139,7 @@ RAOS_HEAP_SIZE_BYTES	src/config.h	/^#define RAOS_HEAP_SIZE_BYTES /;"	d	language:
 RAOS_HEAP_TABLE_ADDRESS	src/config.h	/^#define RAOS_HEAP_TABLE_ADDRESS /;"	d	language:C++
 RAOS_MAX_FILESYSTEMS	src/config.h	/^#define RAOS_MAX_FILESYSTEMS /;"	d	language:C++
 RAOS_MAX_FILE_DESCRIPTORS	src/config.h	/^#define RAOS_MAX_FILE_DESCRIPTORS /;"	d	language:C++
-RAOS_MAX_PATH	src/kernel.h	/^#define RAOS_MAX_PATH /;"	d	language:C++
+RAOS_MAX_PATH	src/config.h	/^#define RAOS_MAX_PATH /;"	d	language:C++
 RAOS_SECTOR_SIZE	src/config.h	/^#define RAOS_SECTOR_SIZE /;"	d	language:C++
 RAOS_TOTAL_INTERRUPTS	src/config.h	/^#define RAOS_TOTAL_INTERRUPTS /;"	d	language:C++
 Read From Hard Disk	README.md	/^## Read From Hard Disk$/;"	s	language:Markdown
@@ -171,6 +184,7 @@ __FAT16_H	src/fs/fat/fat16.h	/^#define __FAT16_H$/;"	d	language:C++
 __anon13f27801010a	src/fs/fat/fat16.c	/^    union {$/;"	u	language:C	struct:fat_item	file:
 __anond486e55a0103	src/fs/file.h	/^enum {$/;"	g	language:C++
 __anond486e55a0203	src/fs/file.h	/^enum {$/;"	g	language:C++
+__anond486e55a0303	src/fs/file.h	/^enum {$/;"	g	language:C++
 _start	src/boot/boot_before_FAT16.asm	/^_start:$/;"	l	language:Asm
 _start	src/boot/boot_before_protected.asm	/^_start:$/;"	l	language:Asm
 _start	src/kernel.asm	/^_start:$/;"	l	language:Asm
@@ -185,6 +199,7 @@ bytes_per_sector	src/fs/fat/fat16.c	/^    uint16_t bytes_per_sector;$/;"	m	langu
 check bin	README.md	/^# check bin$/;"	c	language:Markdown
 chtoi	src/string/string.c	/^int chtoi(char c) {$/;"	f	language:C	typeref:typename:int	signature:(char c)
 clean	Makefile	/^clean:$/;"	t	language:Make
+close	src/fs/file.h	/^    FS_CLOSE_FUNCTION close;$/;"	m	language:C++	struct:filesystem	typeref:typename:FS_CLOSE_FUNCTION
 cluster_read_stream	src/fs/fat/fat16.c	/^    struct disk_stream* cluster_read_stream;  \/\/ data cluster$/;"	m	language:C	struct:fat_private	typeref:struct:disk_stream *	file:
 creation_date	src/fs/fat/fat16.c	/^    uint16_t creation_date;$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint16_t	file:
 creation_time	src/fs/fat/fat16.c	/^    uint16_t creation_time;$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint16_t	file:
@@ -224,24 +239,49 @@ extended_header	src/fs/fat/fat16.c	/^        struct fat_header_extended extended
 extern	src/idt/idt.asm	/^extern int21h_handler$/;"	l	language:Asm
 extern	src/idt/idt.asm	/^extern no_interrupt_handler$/;"	l	language:Asm
 extern	src/kernel.asm	/^extern kernel_main$/;"	l	language:Asm
+fat16_clone_directory_item	src/fs/fat/fat16.c	/^static struct fat_directory_item* fat16_clone_directory_item(struct fat_directory_item* item, in/;"	f	language:C	typeref:struct:fat_directory_item *	file:	signature:(struct fat_directory_item * item,int size)
+fat16_close	src/fs/fat/fat16.c	/^int fat16_close(void* desc) {$/;"	f	language:C	typeref:typename:int	signature:(void * desc)
+fat16_fat_item_free	src/fs/fat/fat16.c	/^static void fat16_fat_item_free(struct fat_item *item) {$/;"	f	language:C	typeref:typename:void	file:	signature:(struct fat_item * item)
+fat16_find_item_in_directory	src/fs/fat/fat16.c	/^static struct fat_item* fat16_find_item_in_directory(struct disk* disk, struct fat_directory* di/;"	f	language:C	typeref:struct:fat_item *	file:	signature:(struct disk * disk,struct fat_directory * directory,const char * name)
+fat16_free_directory	src/fs/fat/fat16.c	/^static void fat16_free_directory(struct fat_directory *directory) {$/;"	f	language:C	typeref:typename:void	file:	signature:(struct fat_directory * directory)
 fat16_fs	src/fs/fat/fat16.c	/^struct filesystem fat16_fs = {$/;"	v	language:C	typeref:struct:filesystem
+fat16_get_cluster_for_offset	src/fs/fat/fat16.c	/^static int fat16_get_cluster_for_offset(struct disk* disk, int start_cluster, int offset) {$/;"	f	language:C	typeref:typename:int	file:	signature:(struct disk * disk,int start_cluster,int offset)
+fat16_get_directory_entry	src/fs/fat/fat16.c	/^static struct fat_item* fat16_get_directory_entry(struct disk* disk, struct path_part* path) {$/;"	f	language:C	typeref:struct:fat_item *	file:	signature:(struct disk * disk,struct path_part * path)
+fat16_get_fat_entry	src/fs/fat/fat16.c	/^static uint32_t fat16_get_fat_entry(struct disk* disk, int cluster_pos) {$/;"	f	language:C	typeref:typename:uint32_t	file:	signature:(struct disk * disk,int cluster_pos)
+fat16_get_first_cluster_for_directory_item	src/fs/fat/fat16.c	/^static inline uint32_t fat16_get_first_cluster_for_directory_item(struct fat_directory_item* ite/;"	f	language:C	typeref:typename:uint32_t	file:	signature:(struct fat_directory_item * item)
+fat16_get_full_relative_filename	src/fs/fat/fat16.c	/^static void fat16_get_full_relative_filename(struct fat_directory_item* item, char* out, int out/;"	f	language:C	typeref:typename:void	file:	signature:(struct fat_directory_item * item,char * out,int out_len)
+fat16_get_root_directory	src/fs/fat/fat16.c	/^static int fat16_get_root_directory(struct disk* disk, struct fat_private* fat_private, struct f/;"	f	language:C	typeref:typename:int	file:	signature:(struct disk * disk,struct fat_private * fat_private,struct fat_directory * directory)
+fat16_get_total_items_for_directory	src/fs/fat/fat16.c	/^static int fat16_get_total_items_for_directory(struct disk* disk, uint32_t directory_start_secto/;"	f	language:C	typeref:typename:int	file:	signature:(struct disk * disk,uint32_t directory_start_sector)
 fat16_init	src/fs/fat/fat16.c	/^struct filesystem* fat16_init() {$/;"	f	language:C	typeref:struct:filesystem *	signature:()
+fat16_init_private	src/fs/fat/fat16.c	/^static void fat16_init_private(struct disk* disk, struct fat_private* private) {$/;"	f	language:C	typeref:typename:void	file:	signature:(struct disk * disk,struct fat_private * private)
+fat16_load_fat_directory	src/fs/fat/fat16.c	/^static struct fat_directory* fat16_load_fat_directory(struct disk* disk, struct fat_directory_it/;"	f	language:C	typeref:struct:fat_directory *	file:	signature:(struct disk * disk,struct fat_directory_item * item)
+fat16_new_fat_item_for_directory_item	src/fs/fat/fat16.c	/^static struct fat_item* fat16_new_fat_item_for_directory_item(struct disk* disk, struct fat_dire/;"	f	language:C	typeref:struct:fat_item *	file:	signature:(struct disk * disk,struct fat_directory_item * item)
 fat16_open	src/fs/fat/fat16.c	/^void* fat16_open(struct disk* disk, struct path_part* path, FILE_MODE mode) {$/;"	f	language:C	typeref:typename:void *	signature:(struct disk * disk,struct path_part * path,FILE_MODE mode)
+fat16_read	src/fs/fat/fat16.c	/^int fat16_read(struct disk* disk, void* desc, uint32_t size, uint32_t nmemb, char* output) {$/;"	f	language:C	typeref:typename:int	signature:(struct disk * disk,void * desc,uint32_t size,uint32_t nmemb,char * output)
+fat16_read_items_of_directory	src/fs/fat/fat16.c	/^static int fat16_read_items_of_directory(struct disk* disk, int start_cluster, int offset, int t/;"	f	language:C	typeref:typename:int	file:	signature:(struct disk * disk,int start_cluster,int offset,int total,void * out)
 fat16_resolve	src/fs/fat/fat16.c	/^int fat16_resolve(struct disk* disk) {$/;"	f	language:C	typeref:typename:int	signature:(struct disk * disk)
+fat16_sector_to_absolute	src/fs/fat/fat16.c	/^static int fat16_sector_to_absolute(struct disk* disk, int sector) {$/;"	f	language:C	typeref:typename:int	file:	signature:(struct disk * disk,int sector)
+fat16_seek	src/fs/fat/fat16.c	/^int fat16_seek(void* desc, uint32_t offset, FILE_SEEK_MODE seek_mode) {$/;"	f	language:C	typeref:typename:int	signature:(void * desc,uint32_t offset,FILE_SEEK_MODE seek_mode)
+fat16_stat	src/fs/fat/fat16.c	/^int fat16_stat(struct disk* disk, void* desc, struct file_stat* stat) {$/;"	f	language:C	typeref:typename:int	signature:(struct disk * disk,void * desc,struct file_stat * stat)
+fat16_to_proper_string	src/fs/fat/fat16.c	/^static void fat16_to_proper_string(char** out, const char* in) {$/;"	f	language:C	typeref:typename:void	file:	signature:(char ** out,const char * in)
 fat_copies	src/fs/fat/fat16.c	/^    uint8_t fat_copies;$/;"	m	language:C	struct:fat_header	typeref:typename:uint8_t	file:
 fat_directory	src/fs/fat/fat16.c	/^struct fat_directory {$/;"	s	language:C	file:
 fat_directory_item	src/fs/fat/fat16.c	/^struct fat_directory_item {$/;"	s	language:C	file:
+fat_file_descriptor	src/fs/fat/fat16.c	/^struct fat_file_descriptor {$/;"	s	language:C	file:
 fat_h	src/fs/fat/fat16.c	/^struct fat_h {$/;"	s	language:C	file:
 fat_h_e	src/fs/fat/fat16.c	/^    union fat_h_e {$/;"	u	language:C	struct:fat_h	file:
 fat_header	src/fs/fat/fat16.c	/^struct fat_header {$/;"	s	language:C	file:
 fat_header_extended	src/fs/fat/fat16.c	/^struct fat_header_extended {$/;"	s	language:C	file:
 fat_item	src/fs/fat/fat16.c	/^struct fat_item {$/;"	s	language:C	file:
-fat_item_descriptor	src/fs/fat/fat16.c	/^struct fat_item_descriptor {$/;"	s	language:C	file:
 fat_private	src/fs/fat/fat16.c	/^struct fat_private {$/;"	s	language:C	file:
 fat_read_stream	src/fs/fat/fat16.c	/^    struct disk_stream* fat_read_stream;      \/\/ file allocation table$/;"	m	language:C	struct:fat_private	typeref:struct:disk_stream *	file:
+fclose	src/fs/file.c	/^int fclose(int fd) {$/;"	f	language:C	typeref:typename:int	signature:(int fd)
 file_descriptor	src/fs/file.h	/^struct file_descriptor {$/;"	s	language:C++
+file_free_descriptor	src/fs/file.c	/^static void file_free_descriptor(struct file_descriptor* fdesc) {$/;"	f	language:C	typeref:typename:void	file:	signature:(struct file_descriptor * fdesc)
 file_get_descriptor	src/fs/file.c	/^static struct file_descriptor* file_get_descriptor(int fd) {$/;"	f	language:C	typeref:struct:file_descriptor *	file:	signature:(int fd)
+file_get_mode_by_string	src/fs/file.c	/^static FILE_MODE file_get_mode_by_string(const char* str) {$/;"	f	language:C	typeref:typename:FILE_MODE	file:	signature:(const char * str)
 file_new_descriptor	src/fs/file.c	/^static int file_new_descriptor(struct file_descriptor** desc_out) {$/;"	f	language:C	typeref:typename:int	file:	signature:(struct file_descriptor ** desc_out)
+file_stat	src/fs/file.h	/^struct file_stat {$/;"	s	language:C++
 filedescriptors	src/fs/file.c	/^struct file_descriptor* filedescriptors[RAOS_MAX_FILE_DESCRIPTORS];$/;"	v	language:C	typeref:struct:file_descriptor * []
 filename	src/fs/fat/fat16.c	/^    uint8_t filename[8];$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint8_t[8]	file:
 filesize	src/fs/fat/fat16.c	/^    uint32_t filesize;$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint32_t	file:
@@ -250,13 +290,19 @@ filesystem	src/fs/file.h	/^    struct filesystem* filesystem;$/;"	m	language:C++
 filesystem	src/fs/file.h	/^struct filesystem {$/;"	s	language:C++
 filesystems	src/fs/file.c	/^struct filesystem* filesystems[RAOS_MAX_FILESYSTEMS];$/;"	v	language:C	typeref:struct:filesystem * []
 first	src/fs/pparser.h	/^    struct path_part* first;$/;"	m	language:C++	struct:path_root	typeref:struct:path_part *
-fopen	src/fs/file.c	/^int fopen(const char *filename, const char *mode) {$/;"	f	language:C	typeref:typename:int	signature:(const char * filename,const char * mode)
+flags	src/fs/file.h	/^    FILE_STAT_FLAGS flags;$/;"	m	language:C++	struct:file_stat	typeref:typename:FILE_STAT_FLAGS
+fopen	src/fs/file.c	/^int fopen(const char *filename, const char *mode_str) {$/;"	f	language:C	typeref:typename:int	signature:(const char * filename,const char * mode_str)
+fread	src/fs/file.c	/^int fread(void *ptr, uint32_t size, uint32_t nmemb, int fd) {$/;"	f	language:C	typeref:typename:int	signature:(void * ptr,uint32_t size,uint32_t nmemb,int fd)
+free_fat16_file_descriptor	src/fs/fat/fat16.c	/^static void free_fat16_file_descriptor(struct fat_file_descriptor* desc) {$/;"	f	language:C	typeref:typename:void	file:	signature:(struct fat_file_descriptor * desc)
 fs_get_free_filesystem	src/fs/file.c	/^static struct filesystem** fs_get_free_filesystem() {$/;"	f	language:C	typeref:struct:filesystem **	file:	signature:()
 fs_init	src/fs/file.c	/^void fs_init() {$/;"	f	language:C	typeref:typename:void	signature:()
 fs_insert_filesystem	src/fs/file.c	/^void fs_insert_filesystem(struct filesystem *filesystem) {$/;"	f	language:C	typeref:typename:void	signature:(struct filesystem * filesystem)
-fs_load	src/fs/file.c	/^void fs_load() {$/;"	f	language:C	typeref:typename:void	signature:()
+fs_load	src/fs/file.c	/^static void fs_load() {$/;"	f	language:C	typeref:typename:void	file:	signature:()
+fs_private	src/disk/disk.h	/^    void*              fs_private;  \/\/ used for internel interpratation$/;"	m	language:C++	struct:disk	typeref:typename:void *
 fs_resolve	src/fs/file.c	/^struct filesystem* fs_resolve(struct disk* disk) {$/;"	f	language:C	typeref:struct:filesystem *	signature:(struct disk * disk)
 fs_static_load	src/fs/file.c	/^static void fs_static_load() {$/;"	f	language:C	typeref:typename:void	file:	signature:()
+fseek	src/fs/file.c	/^int fseek(int fd, int offset, FILE_SEEK_MODE whence) {$/;"	f	language:C	typeref:typename:int	signature:(int fd,int offset,FILE_SEEK_MODE whence)
+fstat	src/fs/file.c	/^int fstat(int fd, struct file_stat *stat) {$/;"	f	language:C	typeref:typename:int	signature:(int fd,struct file_stat * stat)
 gdt_code	src/boot/boot.asm	/^gdt_code:         ; CS should point to this$/;"	l	language:Asm
 gdt_code	src/boot/boot_before_FAT16.asm	/^gdt_code:         ; CS should point to this$/;"	l	language:Asm
 gdt_data	src/boot/boot.asm	/^gdt_data:         ; DS, SS, ES, FS, GS$/;"	l	language:Asm
@@ -298,7 +344,8 @@ heap_table	src/memory/heap/heap.h	/^struct heap_table {$/;"	s	language:C++
 heap_validate_alignment	src/memory/heap/heap.c	/^static int heap_validate_alignment(void* ptr) {$/;"	f	language:C	typeref:typename:int	file:	signature:(void * ptr)
 heap_validate_table	src/memory/heap/heap.c	/^static int heap_validate_table(void* ptr, void* end, struct heap_table* table) {$/;"	f	language:C	typeref:typename:int	file:	signature:(void * ptr,void * end,struct heap_table * table)
 hidden_sectors	src/fs/fat/fat16.c	/^    uint32_t hidden_sectors;$/;"	m	language:C	struct:fat_header	typeref:typename:uint32_t	file:
-high_16_bits_first_cluster	src/fs/fat/fat16.c	/^    uint16_t high_16_bits_first_cluster;  \/\/ subdirectory addr or data of files$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint16_t	file:
+high_16_bits_first_cluster	src/fs/fat/fat16.c	/^    uint16_t high_16_bits_first_cluster;  \/\/ subdirectory addr high 16 bits$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint16_t	file:
+id	src/disk/disk.h	/^    int            id;$/;"	m	language:C++	struct:disk	typeref:typename:int
 idt_desc	src/idt/idt.h	/^struct idt_desc {$/;"	s	language:C++
 idt_descriptors	src/idt/idt.c	/^struct idt_desc  idt_descriptors[RAOS_TOTAL_INTERRUPTS];$/;"	v	language:C	typeref:struct:idt_desc[]
 idt_init	src/idt/idt.c	/^void idt_init() {$/;"	f	language:C	typeref:typename:void	signature:()
@@ -312,9 +359,10 @@ insw	src/io/io.asm	/^insw:$/;"	l	language:Asm
 int21h	src/idt/idt.asm	/^int21h:$/;"	l	language:Asm
 int21h_handler	src/idt/idt.c	/^void int21h_handler() {$/;"	f	language:C	typeref:typename:void	signature:()
 isdigit	src/string/string.c	/^bool isdigit(char c) {$/;"	f	language:C	typeref:typename:bool	signature:(char c)
+istrncmp	src/string/string.c	/^int istrncmp(const char* str1, const char* str2, int n) {$/;"	f	language:C	typeref:typename:int	signature:(const char * str1,const char * str2,int n)
 item	src/fs/fat/fat16.c	/^        struct fat_directory_item* item;$/;"	m	language:C	union:fat_item::__anon13f27801010a	typeref:struct:fat_directory_item *	file:
 item	src/fs/fat/fat16.c	/^    struct fat_directory_item* item;$/;"	m	language:C	struct:fat_directory	typeref:struct:fat_directory_item *	file:
-item	src/fs/fat/fat16.c	/^    struct fat_item* item;$/;"	m	language:C	struct:fat_item_descriptor	typeref:struct:fat_item *	file:
+item	src/fs/fat/fat16.c	/^    struct fat_item* item;$/;"	m	language:C	struct:fat_file_descriptor	typeref:struct:fat_item *	file:
 jmp	src/boot/boot.asm	/^jmp short start$/;"	l	language:Asm
 kernel_chunk	src/kernel.c	/^static struct paging_4gb_chunk* kernel_chunk = NULL;$/;"	v	language:C	typeref:struct:paging_4gb_chunk *	file:
 kernel_heap	src/memory/heap/kheap.c	/^struct heap       kernel_heap;$/;"	v	language:C	typeref:struct:heap
@@ -333,9 +381,10 @@ load32	src/boot/boot_before_FAT16.asm	/^load32:$/;"	l	language:Asm
 load_protected	src/boot/boot.asm	/^.load_protected:$/;"	l	language:Asm
 load_protected	src/boot/boot_before_FAT16.asm	/^.load_protected:$/;"	l	language:Asm
 loop	src/boot/boot_before_protected.asm	/^.loop:$/;"	l	language:Asm
-low_16_bits_first_cluster	src/fs/fat/fat16.c	/^    uint16_t low_16_bits_first_cluster;$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint16_t	file:
+low_16_bits_first_cluster	src/fs/fat/fat16.c	/^    uint16_t low_16_bits_first_cluster;   \/\/ subdirectory addr low 16 bits$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint16_t	file:
 media_type	src/fs/fat/fat16.c	/^    uint8_t media_type;$/;"	m	language:C	struct:fat_header	typeref:typename:uint8_t	file:
 memcmp	src/memory/memory.c	/^int memcmp(void* s1, void*s2, int count) {$/;"	f	language:C	typeref:typename:int	signature:(void * s1,void * s2,int count)
+memcpy	src/memory/memory.c	/^void* memcpy(void* dest, void* src, size_t len) {$/;"	f	language:C	typeref:typename:void *	signature:(void * dest,void * src,size_t len)
 memset	src/memory/memory.c	/^void* memset(void *ptr, char c, size_t size) {$/;"	f	language:C	typeref:typename:void *	signature:(void * ptr,char c,size_t size)
 mov	src/boot/boot.asm	/^    mov ds, ax     ; Data Segment$/;"	d	language:Asm
 mov	src/boot/boot.asm	/^    mov dx, 0x1F0        ; set the port to read$/;"	d	language:Asm
@@ -387,6 +436,7 @@ paging_load_directory	src/memory/paging/paging.asm	/^paging_load_directory:$/;"	
 paging_new_4gb	src/memory/paging/paging.c	/^struct paging_4gb_chunk *paging_new_4gb(uint8_t flags) {$/;"	f	language:C	typeref:struct:paging_4gb_chunk *	signature:(uint8_t flags)
 paging_set	src/memory/paging/paging.c	/^int paging_set(uint32_t* directory, void* virt, uint32_t physic) {$/;"	f	language:C	typeref:typename:int	signature:(uint32_t * directory,void * virt,uint32_t physic)
 paging_switch	src/memory/paging/paging.c	/^void paging_switch(uint32_t *directory) {$/;"	f	language:C	typeref:typename:void	signature:(uint32_t * directory)
+panic	src/kernel.c	/^void panic(const char* msg) {$/;"	f	language:C	typeref:typename:void	signature:(const char * msg)
 part	src/fs/pparser.h	/^    const char*       part;$/;"	m	language:C++	struct:path_part	typeref:typename:const char *
 path_create_root	src/fs/pparser.c	/^static struct path_root* path_create_root(int driver_no) {$/;"	f	language:C	typeref:struct:path_root *	file:	signature:(int driver_no)
 path_free	src/fs/pparser.c	/^void path_free(struct path_root* root) {$/;"	f	language:C	typeref:typename:void	signature:(struct path_root * root)
@@ -398,17 +448,19 @@ path_part	src/fs/pparser.h	/^struct path_part {$/;"	s	language:C++
 path_root	src/fs/pparser.h	/^struct path_root {$/;"	s	language:C++
 path_valid_format	src/fs/pparser.c	/^static int path_valid_format(const char* filename) {$/;"	f	language:C	typeref:typename:int	file:	signature:(const char * filename)
 pos	src/disk/streamer.h	/^    int          pos;$/;"	m	language:C++	struct:disk_stream	typeref:typename:int
-pos	src/fs/fat/fat16.c	/^    uint32_t pos;$/;"	m	language:C	struct:fat_item_descriptor	typeref:typename:uint32_t	file:
+pos	src/fs/fat/fat16.c	/^    uint32_t pos;$/;"	m	language:C	struct:fat_file_descriptor	typeref:typename:uint32_t	file:
 primary_header	src/fs/fat/fat16.c	/^    struct fat_header primary_header;$/;"	m	language:C	struct:fat_h	typeref:struct:fat_header	file:
 print	src/boot/boot_before_protected.asm	/^print:$/;"	l	language:Asm
 print	src/kernel.c	/^void print(const char* str) {$/;"	f	language:C	typeref:typename:void	signature:(const char * str)
 print_char	src/boot/boot_before_protected.asm	/^print_char:$/;"	l	language:Asm
 private_	src/fs/file.h	/^    void* private_;$/;"	m	language:C++	struct:file_descriptor	typeref:typename:void *
+read	src/fs/file.h	/^    FS_READ_FUNCTION read;$/;"	m	language:C++	struct:filesystem	typeref:typename:FS_READ_FUNCTION
 reserved	src/fs/fat/fat16.c	/^    uint8_t reserved;   \/\/ for furture usage$/;"	m	language:C	struct:fat_directory_item	typeref:typename:uint8_t	file:
 reserved_sectors	src/fs/fat/fat16.c	/^    uint16_t reserved_sectors;$/;"	m	language:C	struct:fat_header	typeref:typename:uint16_t	file:
 resolve	src/fs/file.h	/^    FS_RESOLVE_FUNCTION resolve;$/;"	m	language:C++	struct:filesystem	typeref:typename:FS_RESOLVE_FUNCTION
 root_dir_entries	src/fs/fat/fat16.c	/^    uint16_t root_dir_entries;$/;"	m	language:C	struct:fat_header	typeref:typename:uint16_t	file:
 root_directory	src/fs/fat/fat16.c	/^    struct fat_directory root_directory;$/;"	m	language:C	struct:fat_private	typeref:struct:fat_directory	file:
+run	README.md	/^# run$/;"	c	language:Markdown
 run in qemu	README.md	/^# run in qemu$/;"	c	language:Markdown
 saddr	src/memory/heap/heap.h	/^    void* saddr;$/;"	m	language:C++	struct:heap	typeref:typename:void *
 sector_pos	src/fs/fat/fat16.c	/^    int32_t sector_pos;$/;"	m	language:C	struct:fat_directory	typeref:typename:int32_t	file:
@@ -417,19 +469,25 @@ sectors_big	src/fs/fat/fat16.c	/^    uint32_t sectors_big;$/;"	m	language:C	stru
 sectors_per_cluster	src/fs/fat/fat16.c	/^    uint8_t sectors_per_cluster;$/;"	m	language:C	struct:fat_header	typeref:typename:uint8_t	file:
 sectors_per_fat	src/fs/fat/fat16.c	/^    uint16_t sectors_per_fat;$/;"	m	language:C	struct:fat_header	typeref:typename:uint16_t	file:
 sectors_per_track	src/fs/fat/fat16.c	/^    uint16_t sectors_per_track;$/;"	m	language:C	struct:fat_header	typeref:typename:uint16_t	file:
+seek	src/fs/file.h	/^    FS_SEEK_FUNCTION seek;$/;"	m	language:C++	struct:filesystem	typeref:typename:FS_SEEK_FUNCTION
 selector	src/idt/idt.h	/^    uint16_t selector;      \/\/ a code segment selector in GDT or LDT$/;"	m	language:C++	struct:idt_desc	typeref:typename:uint16_t
+set break point	README.md	/^# set break point$/;"	c	language:Markdown
 shared	src/fs/fat/fat16.c	/^    } shared;  \/\/ optional, could be something else.$/;"	m	language:C	struct:fat_h	typeref:union:fat_h::fat_h_e	file:
 short_jmp_inst	src/fs/fat/fat16.c	/^    uint8_t short_jmp_inst[3];  \/\/ boot.asm: short jmp start$/;"	m	language:C	struct:fat_header	typeref:typename:uint8_t[3]	file:
 signature	src/fs/fat/fat16.c	/^    uint8_t signature;$/;"	m	language:C	struct:fat_header_extended	typeref:typename:uint8_t	file:
+size	src/fs/file.h	/^    uint32_t size;$/;"	m	language:C++	struct:file_stat	typeref:typename:uint32_t
 start	src/boot/boot.asm	/^start:$/;"	l	language:Asm
 start	src/boot/boot_before_FAT16.asm	/^start:$/;"	l	language:Asm
 start	src/boot/boot_before_protected.asm	/^start:$/;"	l	language:Asm
+stat	src/fs/file.h	/^    FS_STAT_FUNCTION stat;$/;"	m	language:C++	struct:filesystem	typeref:typename:FS_STAT_FUNCTION
 step2	src/boot/boot.asm	/^step2:$/;"	l	language:Asm
 step2	src/boot/boot_before_FAT16.asm	/^step2:$/;"	l	language:Asm
 step2	src/boot/boot_before_protected.asm	/^step2:$/;"	l	language:Asm
 strcpy	src/string/string.c	/^char* strcpy(char *dest, const char* src) {$/;"	f	language:C	typeref:typename:char *	signature:(char * dest,const char * src)
 strlen	src/string/string.c	/^size_t strlen(const char* ptr) {$/;"	f	language:C	typeref:typename:size_t	signature:(const char * ptr)
+strncmp	src/string/string.c	/^int strncmp(const char* str1, const char* str2, int n) {$/;"	f	language:C	typeref:typename:int	signature:(const char * str1,const char * str2,int n)
 strnlen	src/string/string.c	/^size_t strnlen(const char* ptr, size_t max_len) {$/;"	f	language:C	typeref:typename:size_t	signature:(const char * ptr,size_t max_len)
+strnlen_terminator	src/string/string.c	/^int strnlen_terminator(const char* str, size_t max, char terminator) {$/;"	f	language:C	typeref:typename:int	signature:(const char * str,size_t max,char terminator)
 system_id_string	src/fs/fat/fat16.c	/^    uint8_t system_id_string[8];$/;"	m	language:C	struct:fat_header_extended	typeref:typename:uint8_t[8]	file:
 table	src/memory/heap/heap.h	/^    struct heap_table* table;$/;"	m	language:C++	struct:heap	typeref:struct:heap_table *
 terminal_col	src/kernel.c	/^uint16_t  terminal_col = 0;$/;"	v	language:C	typeref:typename:uint16_t
@@ -444,6 +502,7 @@ times	src/boot/boot_before_FAT16.asm	/^times 510-($ - $$) db 0$/;"	l	language:As
 times	src/boot/boot_before_protected.asm	/^times 33 db 0  ; for BIOS parameter block$/;"	l	language:Asm
 times	src/boot/boot_before_protected.asm	/^times 510-($ - $$) db 0$/;"	l	language:Asm
 times	src/kernel.asm	/^times 512-($ - $$) db 0   ; alignment to 512 bytes/;"	l	language:Asm
+tolower	src/string/string.c	/^char tolower(char ch) {$/;"	f	language:C	typeref:typename:char	signature:(char ch)
 total	src/fs/fat/fat16.c	/^    int32_t total;$/;"	m	language:C	struct:fat_directory	typeref:typename:int32_t	file:
 total	src/memory/heap/heap.h	/^    size_t                  total;  \/\/ number of entries$/;"	m	language:C++	struct:heap_table	typeref:typename:size_t
 try_again	src/boot/boot.asm	/^.try_again:$/;"	l	language:Asm
