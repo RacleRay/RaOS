@@ -11,4 +11,4 @@ echo "Push success: [$msg]"
 echo "---------- End ----------"
 read -p "Press Enter to continue..."
 
-cp -r ../RaOS ../RaOS.bak
+# cp -r ../RaOS/ ../RaOS.bak/

@@ -1,8 +1,11 @@
-#include "kernel.h"
+#include "config.h"
 #include "disk/disk.h"
 #include "disk/streamer.h"
+#include "gdt/gdt.h"
+#include "kernel.h"
 #include "fs/pparser.h"
 #include "fs/file.h"
+#include "memory/memory.h"
 #include "idt/idt.h"
 #include "io/io.h"
 #include "memory/heap/kheap.h"
@@ -75,6 +78,13 @@ void panic(const char* msg) {
 }
 
 
+struct gdt gdt_real[RAOS_TOTAL_GDT_SEGMENTS];
+struct gdt_structured gdt_structured[RAOS_TOTAL_GDT_SEGMENTS] = {
+    {.base = 0x00, .limit = 0x00, .type = 0x00},                // NULL Segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},           // Kernel code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x92},            // Kernel data segment
+};
+
 static struct paging_4gb_chunk* kernel_chunk = NULL;
 
 
@@ -84,6 +94,11 @@ static struct paging_4gb_chunk* kernel_chunk = NULL;
 
 void kernel_main() {
     (void)terminal_initialize();
+
+    // load the gdt
+    memset(gdt_real, 0, sizeof(gdt_real));
+    gdt_structured_to_gdt(gdt_real, gdt_structured, RAOS_TOTAL_GDT_SEGMENTS);
+    gdt_load(gdt_real, sizeof(gdt_real));
 
     // For test
     // video_mem[0] = 0x4103;  // little endian

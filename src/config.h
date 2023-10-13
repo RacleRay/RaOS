@@ -21,4 +21,6 @@
 
 #define RAOS_MAX_PATH 128
 
+#define RAOS_TOTAL_GDT_SEGMENTS 3
+
 #endif

@@ -8,6 +8,7 @@
 #define ERROR_I(val) (int)(val)
 #define ISERR(val) ((int)(val) < 0)
 
+void panic(const char* msg);
 void print(const char* str);
 void kernel_main();
 
