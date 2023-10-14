@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "config.h"
 #include "disk/disk.h"
 #include "disk/streamer.h"
@@ -11,8 +12,8 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
-#include <stddef.h>
-#include <stdint.h>
+#include "task/tss.h"
+
 
 
 uint16_t* video_mem    = 0;
@@ -77,12 +78,16 @@ void panic(const char* msg) {
     while (1) {}
 }
 
+struct tss tss;
 
 struct gdt gdt_real[RAOS_TOTAL_GDT_SEGMENTS];
 struct gdt_structured gdt_structured[RAOS_TOTAL_GDT_SEGMENTS] = {
     {.base = 0x00, .limit = 0x00, .type = 0x00},                // NULL Segment
     {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},           // Kernel code segment
     {.base = 0x00, .limit = 0xffffffff, .type = 0x92},            // Kernel data segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0xf8},              // User code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0xf2},             // User data segment
+    {.base = (uint32_t)&tss, .limit=sizeof(tss), .type = 0xE9}      // TSS Segment
 };
 
 static struct paging_4gb_chunk* kernel_chunk = NULL;
@@ -93,7 +98,7 @@ static struct paging_4gb_chunk* kernel_chunk = NULL;
 
 
 void kernel_main() {
-    (void)terminal_initialize();
+    terminal_initialize();
 
     // load the gdt
     memset(gdt_real, 0, sizeof(gdt_real));
@@ -113,26 +118,34 @@ void kernel_main() {
     kheap_init();
 
     // init file system
-    (void)fs_init();
+    fs_init();
 
     // Search and initialize the disks.
-    (void)disk_search_and_init();
+    disk_search_and_init();
 
     // IDT initialization.
-    (void)idt_init();
+    idt_init();
+
+    // TSS initialization.
+    memset(&tss, 0, sizeof(tss));
+    tss.esp0 = 0x600000;   // kernel stack address
+    tss.ss0  = KERNEL_DATA_SELECTOR;
+
+    // Load TSS
+    tss_load(0x28);  // 0x28 is the offset of TSS segment in GDT.
 
     // Setup paging
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITABLE | PAGING_IS_PRESENT
                                   | PAGING_ACCESS_FROM_ALL);
 
     // Switch to kernel paging chunk
-    (void)paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
 
     // Enable paginng
-    (void)enable_paging();
+    enable_paging();
 
     // enable interrupts after IDT initialized.
-    (void)enable_interrupts();
+    enable_interrupts();
 
     // === Begin === For fopen test 
     int fd = fopen("0:/message.txt", "r");
