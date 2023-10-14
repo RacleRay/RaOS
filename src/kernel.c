@@ -78,6 +78,15 @@ void panic(const char* msg) {
     while (1) {}
 }
 
+
+static struct paging_4gb_chunk* kernel_chunk = 0;
+
+void kernel_page() {
+    kernel_registers();
+    paging_switch(kernel_chunk);
+}
+
+
 struct tss tss;
 
 struct gdt gdt_real[RAOS_TOTAL_GDT_SEGMENTS];
@@ -89,8 +98,6 @@ struct gdt_structured gdt_structured[RAOS_TOTAL_GDT_SEGMENTS] = {
     {.base = 0x00, .limit = 0xffffffff, .type = 0xf2},             // User data segment
     {.base = (uint32_t)&tss, .limit=sizeof(tss), .type = 0xE9}      // TSS Segment
 };
-
-static struct paging_4gb_chunk* kernel_chunk = NULL;
 
 
 // For IDT test
@@ -139,7 +146,7 @@ void kernel_main() {
                                   | PAGING_ACCESS_FROM_ALL);
 
     // Switch to kernel paging chunk
-    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+    paging_switch(kernel_chunk);
 
     // Enable paginng
     enable_paging();

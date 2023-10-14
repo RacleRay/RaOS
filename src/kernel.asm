@@ -5,6 +5,7 @@
 ; the rest of kernel.
 [BITS 32]
 global _start
+global kernel_registers
 
 ; For IDT test
 ; ---------------------------
@@ -57,6 +58,15 @@ _start:
 ;     mov eax, 0
 ;     div eax
 ; ---------------------------
+
+
+kernel_registers:
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov gs, ax
+    mov fs, ax
+    ret
 
 
 times 512-($ - $$) db 0   ; alignment to 512 bytes

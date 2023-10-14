@@ -36,11 +36,11 @@ size_t strnlen(const char* ptr, size_t max_len) {
 
 /**
  * @brief String length with specific terminator.
- * 
- * @param str 
+ *
+ * @param str
  * @param max max length
  * @param terminator ending flag.
- * @return int 
+ * @return int
  */
 int strnlen_terminator(const char* str, size_t max, char terminator) {
     int i = 0;
@@ -54,7 +54,7 @@ int strnlen_terminator(const char* str, size_t max, char terminator) {
 
 
 // strncpy is better.
-char* strcpy(char *dest, const char* src) {
+char* strcpy(char* dest, const char* src) {
     char* begin = dest;
     while (*src != 0) {
         *dest = *src;
@@ -67,10 +67,31 @@ char* strcpy(char *dest, const char* src) {
 
 
 /**
- * @brief Compare two string.
+ * @brief When n > length of src, src will be ended replace with 0x00, then
+          copy src to dest.
  * 
- * @param str1 
- * @param str2 
+ * @param dest 
+ * @param src 
+ * @param n 
+ * @return char* 
+ */
+char* strncpy(char* dest, const char* src, int n) {
+    int i = 0;
+    for (i = 0; i < n - 1; i++) {
+        if (src[i] == 0x00) break;
+        dest[i] = src[i];
+    }
+
+    dest[i] = 0x00;
+    return dest;
+}
+
+
+/**
+ * @brief Compare two string.
+ *
+ * @param str1
+ * @param str2
  * @param n max length to compare.
  * @return int 0 means same ; else return str1 - str2
  */
@@ -83,8 +104,7 @@ int strncmp(const char* str1, const char* str2, int n) {
         if (ch1 != ch2) {
             return ch1 - ch2;
         }
-        if (ch1 == '\0')
-            break;
+        if (ch1 == '\0') break;
     }
 
     return 0;
@@ -93,9 +113,9 @@ int strncmp(const char* str1, const char* str2, int n) {
 
 /**
  * @brief Compare two string ignoring case.
- * 
- * @param str1 
- * @param str2 
+ *
+ * @param str1
+ * @param str2
  * @param n max length to compare.
  * @return int 0 means same ; else return str1 - str2
  */
@@ -108,8 +128,7 @@ int istrncmp(const char* str1, const char* str2, int n) {
         if (ch1 != ch2 && tolower(ch1) != tolower(ch2)) {
             return ch1 - ch2;
         }
-        if (ch1 == '\0')
-            break;
+        if (ch1 == '\0') break;
     }
 
     return 0;

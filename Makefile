@@ -8,7 +8,8 @@ FILES = ./build/kernel.asm.o ./build/kernel.o ./build/idt/idt.asm.o ./build/idt/
 		./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o \
 		./build/fs/pparser.o ./build/disk/streamer.o ./build/fs/file.o \
 		./build/fs/fat/fat16.o ./build/gdt/gdt.asm.o ./build/gdt/gdt.o \
-		./build/task/tss.asm.o
+		./build/task/tss.asm.o ./build/task/task.o ./build/task/task.asm.o \
+		./build/task/process.o ./build/loader/elfloader.o ./build/loader/elf.o
 
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -55,6 +56,9 @@ all: ./bin/boot.bin ./bin/kernel.bin
 ./build/task/tss.asm.o: ./src/task/tss.asm
 	nasm -f elf -g $^ -o $@
 
+./build/task/task.asm.o: ./src/task/task.asm
+	nasm -f elf -g $^ -o $@
+
 ./build/kernel.o: ./src/kernel.c
 	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c $^ -o $@
 
@@ -93,6 +97,18 @@ all: ./bin/boot.bin ./bin/kernel.bin
 
 ./build/disk/streamer.o: ./src/disk/streamer.c
 	i686-elf-gcc $(INCLUDES) $(FLAGS) -I./src/disk -std=gnu99 -c $^ -o $@
+
+./build/task/task.o: ./src/task/task.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -I./src/task -std=gnu99 -c $^ -o $@
+
+./build/task/process.o: ./src/task/process.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -I./src/task -std=gnu99 -c $^ -o $@
+
+./build/loader/elf.o: ./src/loader/elf.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -I./src/task -std=gnu99 -c $^ -o $@
+
+./build/loader/elfloader.o: ./src/loader/elfloader.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -I./src/task -std=gnu99 -c $^ -o $@
 
 
 before_protected_mode:

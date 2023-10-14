@@ -11,5 +11,7 @@
 void panic(const char* msg);
 void print(const char* str);
 void kernel_main();
+void kernel_page();
+void kernel_registers();
 
 #endif
