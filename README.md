@@ -1,3 +1,59 @@
+## Environment
+
+```sh
+sudo apt install nasm qemu-system-x86
+
+sudo apt install build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo libisl-dev
+# libcloog-isl-dev may have no installation candidate
+```
+
+[Download GCC](http://ftp.tsukuba.wide.ad.jp/software/gcc/releases/)
+
+[Download binutils](https://ftp.gnu.org/gnu/binutils/)
+
+```sh
+export PREFIX="$HOME/opt/cross"
+export TARGET=i686-elf
+export PATH="$PREFIX/bin:$PATH"
+
+# into source code directory
+# make dir at the same level to binutils-x.y.z dir
+mkdir build-binutils  
+cd build-binutils
+../binutils-2.41/configure --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
+make
+make install
+
+
+# into source code directory
+# make dir at the same level to gcc-x.y.z dir
+mkdir build-gcc
+cd build-gcc
+../gcc-12.2.0/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers
+make all-gcc
+make all-target-libgcc
+make install-gcc
+make install-target-libgcc
+```
+
+```sh
+# add this line to /etc/profile 
+export PATH="$HOME/opt/cross/bin:$PATH"
+```
+
+```sh
+source /etc/profile 
+```
+
+```sh
+# check
+i686-elf-gcc -v
+```
+
+[Reference](https://cn.bing.com/search?q=osdev+cross+compiler&cvid=bb7589717f3749ba95e4b95415d72a85&gs_lcrp=EgZjaHJvbWUqBAgBEAAyBggAEEUYOTIECAEQADIECAIQADIECAMQADIECAQQADIECAUQADIGCAYQRRg80gEINjQ3M2owajGoAgCwAgA&FORM=ANAB01&PC=CNNDSE)
+
+---
+
 ## Get to debug with GDB
 ```sh
 gdb
